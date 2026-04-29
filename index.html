@@ -160,6 +160,11 @@
       box-shadow: 0 0 7px rgba(249,115,22,.45);
     }
 
+    .nav-item-db::before {
+      background: #DBEAFE !important;
+    }
+    .nav-item-db:hover::before { background: #93C5FD !important; }
+
     .sidebar-footer {
       padding: 14px 16px;
       border-top: 1px solid var(--sidebar-border);
@@ -686,6 +691,104 @@
     }
 
     .btn-remove-cond:hover { background: #FEE2E2; }
+
+    /* ──────────────────────────────────── MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(28,25,23,.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 400;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-panel {
+      background: var(--surface);
+      border-radius: 14px;
+      width: min(860px, 95vw);
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(28,25,23,.22), 0 4px 16px rgba(28,25,23,.1);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .modal-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .modal-close {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .13s, color .13s;
+      flex-shrink: 0;
+      line-height: 1;
+      font-family: inherit;
+    }
+    .modal-close:hover { background: var(--bg); color: var(--text); }
+
+    .modal-search-row {
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .modal-search-row input {
+      height: 36px;
+      font-size: 13px;
+    }
+
+    .modal-count {
+      padding: 6px 24px;
+      font-size: 11px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: #FDFAF7;
+    }
+
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .modal-body .table-wrap {
+      border: none;
+      border-radius: 0;
+    }
+
+    .modal-body thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .modal-body tbody tr:hover { background: #FFF7ED; }
   </style>
 </head>
 <body>
@@ -707,6 +810,9 @@
     <a class="nav-item" href="#">Regras Ativas</a>
 
     <p class="nav-label">Gestão</p>
+    <a class="nav-item nav-item-db" href="#" onclick="openBase('dineg');return false">Tabela Dineg</a>
+    <a class="nav-item nav-item-db" href="#" onclick="openBase('coord');return false">Base Coordenadora</a>
+    <a class="nav-item nav-item-db" href="#" onclick="openBase('func');return false">Base Funcional</a>
     <a class="nav-item" href="#">Histórico</a>
     <a class="nav-item" href="#">Usuários</a>
 
@@ -920,31 +1026,190 @@
   </div>
 </div>
 
+<!-- ══ MODAL BASE ══════════════════════════════════════════════════════════ -->
+<div id="base-modal" class="modal-overlay" onclick="if(event.target===this)closeBase()">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div>
+        <h2 id="modal-title" class="modal-title"></h2>
+        <p id="modal-sub" class="modal-sub"></p>
+      </div>
+      <button class="modal-close" onclick="closeBase()" title="Fechar (Esc)">×</button>
+    </div>
+    <div class="modal-search-row">
+      <input id="modal-search" type="text" placeholder="Filtrar registros..." oninput="filterModal()" autocomplete="off" />
+    </div>
+    <div id="modal-count" class="modal-count"></div>
+    <div class="modal-body">
+      <div class="table-wrap">
+        <table>
+          <thead id="modal-thead"></thead>
+          <tbody id="modal-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-const BD = {
-  dinegs: [10, 25, 42, 63, 88],
-  regioes: { 10:[1,2], 25:[3,4], 42:[5,6], 63:[7,8], 88:[9] },
-  regionais: { 1:[1001,1002], 2:[2001], 3:[3001,3002], 4:[4001], 5:[5001,5002], 6:[6001], 7:[7001], 8:[8001], 9:[9001,9002] },
-  coordenadoras: { 1001:[7001,7002], 1002:[7003], 2001:[7004], 3001:[7005], 3002:[7006], 4001:[7007], 5001:[7008], 5002:[7009], 6001:[7010], 7001:[7011], 8001:[7012], 9001:[7013], 9002:[7014] },
-  plataformas: { 1001:[6001,6002], 1002:[6003], 2001:[6004], 3001:[6005], 3002:[6006], 4001:[6007], 5001:[6008], 5002:[6009], 6001:[6010], 7001:[6011], 8001:[6012], 9001:[6013], 9002:[6014] },
-  coordenadas: { 7001:[8001,8002], 7002:[8003], 7003:[8004,8005], 7004:[8006], 7005:[8007,8008], 7006:[8009], 7007:[8010,8011], 7008:[8012], 7009:[8013,8014], 7010:[8015], 7011:[8016,8017], 7012:[8018], 7013:[8019], 7014:[8020] },
-  platData: {
-    6001:{ carteira:'01_6001', funcionais:['111222333','444555666'] },
-    6002:{ carteira:'01_6002', funcionais:['777888999'] },
-    6003:{ carteira:'01_6003', funcionais:['222333444'] },
-    6004:{ carteira:'01_6004', funcionais:['333444555'] },
-    6005:{ carteira:'01_6005', funcionais:['555666777'] },
-    6006:{ carteira:'01_6006', funcionais:['666777888'] },
-    6007:{ carteira:'01_6007', funcionais:['777888999','888999000'] },
-    6008:{ carteira:'01_6008', funcionais:['999000111'] },
-    6009:{ carteira:'01_6009', funcionais:['100200300'] },
-    6010:{ carteira:'01_6010', funcionais:['200300400'] },
-    6011:{ carteira:'01_6011', funcionais:['300400500','400500600'] },
-    6012:{ carteira:'01_6012', funcionais:['500600700'] },
-    6013:{ carteira:'01_6013', funcionais:['600700800'] },
-    6014:{ carteira:'01_6014', funcionais:['700800900'] },
+// ─── BASE DATA ────────────────────────────────────────────────────────────────
+
+const BASE_DINEG = (() => {
+  const dPool = [10,15,25,31,42,54,63,77,88,96];
+  return Array.from({length:100}, (_, i) => ({
+    dineg:      dPool[i % dPool.length],
+    regiao:     1 + (i * 7 % 9),
+    regional:   1001 + (i * 19 % 399),
+    plataforma: 6001 + (i * 23 % 399)
+  }));
+})();
+
+const BASE_COORD = Array.from({length:30}, (_, i) => ({
+  coordenadora: 7001 + i,
+  coordenada:   8001 + (i * 7 % 90)
+}));
+
+const BASE_FUNC = Array.from({length:200}, (_, i) => {
+  const plataforma = 6001 + (i * 23 % 399);
+  return {
+    funcional:  String(100000000 + i * 4500001).padStart(9,'0'),
+    carteira:   '01_' + plataforma,
+    plataforma
+  };
+});
+
+// ─── AUTOCOMPLETE ─────────────────────────────────────────────────────────────
+
+function uniq(arr) {
+  return [...new Set(arr)].sort((a,b) => typeof a === 'number' ? a - b : String(a).localeCompare(String(b)));
+}
+
+function setDl(id, vals) {
+  document.getElementById(id).innerHTML = vals.map(v => `<option value="${v}">`).join('');
+}
+
+function initAllDl() {
+  setDl('dl-dineg',        uniq(BASE_DINEG.map(r => r.dineg)));
+  setDl('dl-regiao',       uniq(BASE_DINEG.map(r => r.regiao)));
+  setDl('dl-regional',     uniq(BASE_DINEG.map(r => r.regional)));
+  setDl('dl-plataforma',   uniq(BASE_DINEG.map(r => r.plataforma)));
+  setDl('dl-coordenadora', uniq(BASE_COORD.map(r => r.coordenadora)));
+  setDl('dl-coordenada',   uniq(BASE_COORD.map(r => r.coordenada)));
+  setDl('dl-carteira',     uniq(BASE_FUNC.map(r => r.carteira)));
+  setDl('dl-funcional',    uniq(BASE_FUNC.map(r => r.funcional)));
+}
+
+document.getElementById('f-dineg').addEventListener('input', function() {
+  const v = Number(this.value);
+  const m = BASE_DINEG.filter(r => r.dineg === v);
+  if (m.length) {
+    setDl('dl-regiao',    uniq(m.map(r => r.regiao)));
+    setDl('dl-regional',  uniq(m.map(r => r.regional)));
+    setDl('dl-plataforma',uniq(m.map(r => r.plataforma)));
+  } else {
+    initAllDl();
+  }
+});
+
+document.getElementById('f-regiao').addEventListener('input', function() {
+  const v = Number(this.value);
+  const m = BASE_DINEG.filter(r => r.regiao === v);
+  if (m.length) {
+    setDl('dl-regional',   uniq(m.map(r => r.regional)));
+    setDl('dl-plataforma', uniq(m.map(r => r.plataforma)));
+  }
+});
+
+document.getElementById('f-regional').addEventListener('input', function() {
+  const v = Number(this.value);
+  const m = BASE_DINEG.filter(r => r.regional === v);
+  if (m.length) {
+    setDl('dl-plataforma', uniq(m.map(r => r.plataforma)));
+  }
+});
+
+document.getElementById('f-coordenadora').addEventListener('input', function() {
+  const v = Number(this.value);
+  const m = BASE_COORD.filter(r => r.coordenadora === v);
+  if (m.length) {
+    setDl('dl-coordenada', uniq(m.map(r => r.coordenada)));
+  }
+});
+
+document.getElementById('f-plataforma').addEventListener('input', function() {
+  const v = Number(this.value);
+  const m = BASE_FUNC.filter(r => r.plataforma === v);
+  if (m.length) {
+    setDl('dl-carteira',  uniq(m.map(r => r.carteira)));
+    setDl('dl-funcional', uniq(m.map(r => r.funcional)));
+  }
+});
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+
+const BASES = {
+  dineg: {
+    title: 'Tabela Dineg',
+    sub:   '100 registros · fonte: DW / AWS',
+    cols:  ['#', 'Dineg', 'Região', 'Regional', 'Plataforma'],
+    rows:  () => BASE_DINEG.map((r,i) => [i+1, r.dineg, r.regiao, r.regional, r.plataforma])
   },
+  coord: {
+    title: 'Base Coordenadora',
+    sub:   '30 registros · fonte: Dynamics 365',
+    cols:  ['#', 'Coordenadora', 'Coordenada'],
+    rows:  () => BASE_COORD.map((r,i) => [i+1, r.coordenadora, r.coordenada])
+  },
+  func: {
+    title: 'Base Funcional',
+    sub:   '200 registros · fonte: SIRHH',
+    cols:  ['#', 'Funcional', 'Carteira'],
+    rows:  () => BASE_FUNC.map((r,i) => [i+1, r.funcional, r.carteira])
+  }
 };
+
+let _modalAllRows = [];
+
+function openBase(name) {
+  const def = BASES[name];
+  document.getElementById('modal-title').textContent = def.title;
+  document.getElementById('modal-sub').textContent   = def.sub;
+  document.getElementById('modal-search').value      = '';
+  document.getElementById('modal-thead').innerHTML   =
+    '<tr>' + def.cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+  _modalAllRows = def.rows();
+  renderModalRows(_modalAllRows);
+  document.getElementById('base-modal').classList.add('open');
+  setTimeout(() => document.getElementById('modal-search').focus(), 80);
+}
+
+function closeBase() {
+  document.getElementById('base-modal').classList.remove('open');
+}
+
+function renderModalRows(rows) {
+  const total = _modalAllRows.length;
+  document.getElementById('modal-count').textContent =
+    rows.length === total
+      ? `${total} registros`
+      : `${rows.length} de ${total} registros`;
+  document.getElementById('modal-tbody').innerHTML =
+    rows.length
+      ? rows.map(row => '<tr>' + row.map(v => `<td>${v}</td>`).join('') + '</tr>').join('')
+      : '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted)">Nenhum registro encontrado</td></tr>';
+}
+
+function filterModal() {
+  const q = document.getElementById('modal-search').value.toLowerCase().trim();
+  const filtered = q
+    ? _modalAllRows.filter(row => row.some(v => String(v).toLowerCase().includes(q)))
+    : _modalAllRows;
+  renderModalRows(filtered);
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBase(); });
+
+// ─── RULES ────────────────────────────────────────────────────────────────────
 
 let rules = [
   { ator:'Iclientes', modelo:'IAD',     dineg:'10', regiao:'1',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'',          carteira:'',        produto:'',                   segmento:'', conditions:[{ funcionais:['111222333','444555666','777888999','222333444'], carteira:'02_6001', plataforma:'', produto:'' }] },
@@ -958,64 +1223,6 @@ let rules = [
 ];
 
 const KEYS = ['dineg','regiao','regional','plataforma','coordenadora','coordenada','funcional','carteira','produto','segmento'];
-
-function setDl(id, vals) {
-  document.getElementById(id).innerHTML = vals.map(v => `<option value="${v}">`).join('');
-}
-
-function allValues(obj) {
-  return [...new Set(Object.values(obj).flat())].sort((a,b) => a > b ? 1 : -1);
-}
-
-function initAllDl() {
-  setDl('dl-dineg',        BD.dinegs);
-  setDl('dl-regiao',       allValues(BD.regioes));
-  setDl('dl-regional',     allValues(BD.regionais));
-  setDl('dl-coordenadora', allValues(BD.coordenadoras));
-  setDl('dl-coordenada',   allValues(BD.coordenadas));
-  setDl('dl-plataforma',   allValues(BD.plataformas));
-  setDl('dl-carteira',     Object.values(BD.platData).map(d => d.carteira));
-  setDl('dl-funcional',    [...new Set(Object.values(BD.platData).flatMap(d => d.funcionais))].sort());
-}
-
-document.getElementById('f-dineg').addEventListener('input', function() {
-  const v = Number(this.value);
-  setDl('dl-regiao',       BD.regioes[v]        || allValues(BD.regioes));
-  setDl('dl-regional',     allValues(BD.regionais));
-  setDl('dl-coordenadora', allValues(BD.coordenadoras));
-  setDl('dl-plataforma',   allValues(BD.plataformas));
-});
-
-document.getElementById('f-regiao').addEventListener('input', function() {
-  const v = Number(this.value);
-  const reg = BD.regionais[v] || allValues(BD.regionais);
-  setDl('dl-regional', reg);
-  const coords = reg.flatMap(r => BD.coordenadoras[r] || []);
-  const plats  = reg.flatMap(r => BD.plataformas[r]   || []);
-  setDl('dl-coordenadora', coords.length ? coords : allValues(BD.coordenadoras));
-  setDl('dl-plataforma',   plats.length  ? plats  : allValues(BD.plataformas));
-});
-
-document.getElementById('f-regional').addEventListener('input', function() {
-  const v = Number(this.value);
-  setDl('dl-coordenadora', BD.coordenadoras[v] || allValues(BD.coordenadoras));
-  setDl('dl-plataforma',   BD.plataformas[v]   || allValues(BD.plataformas));
-});
-
-document.getElementById('f-coordenadora').addEventListener('input', function() {
-  setDl('dl-coordenada', BD.coordenadas[Number(this.value)] || allValues(BD.coordenadas));
-});
-
-document.getElementById('f-plataforma').addEventListener('input', function() {
-  const pd = BD.platData[Number(this.value)];
-  if (pd) {
-    setDl('dl-carteira',  [pd.carteira]);
-    setDl('dl-funcional', pd.funcionais);
-  } else {
-    setDl('dl-carteira',  Object.values(BD.platData).map(d => d.carteira));
-    setDl('dl-funcional', [...new Set(Object.values(BD.platData).flatMap(d => d.funcionais))].sort());
-  }
-});
 
 function cell(v) {
   return v ? `<td>${v}</td>` : `<td class="empty-cell">—</td>`;
@@ -1082,7 +1289,6 @@ function renderRules() {
 }
 
 function removeRule(i) { rules.splice(i, 1); renderRules(); }
-
 function removeCondition(ri, ci) { rules[ri].conditions.splice(ci, 1); renderRules(); }
 
 function addRule() {
@@ -1119,7 +1325,7 @@ function updateSEIdSelect() {
 }
 
 function addCondition() {
-  const idVal    = document.getElementById('se-id').value;
+  const idVal = document.getElementById('se-id').value;
   if (!idVal) { alert('Selecione a regra de referência.'); return; }
   const funcText = document.getElementById('se-funcional').value.trim();
   if (!funcText) { alert('Informe ao menos um funcional.'); return; }
