@@ -881,6 +881,10 @@
             <option>CONECTA</option>
           </select>
         </div>
+        <div class="field">
+          <label>Plataforma <span style="font-weight:400;color:var(--muted);font-size:9.5px">(opcional)</span></label>
+          <input id="sel-plataforma" type="number" list="dl-plataforma" placeholder="Todas" autocomplete="off" style="min-width:150px" />
+        </div>
       </div>
     </div>
 
@@ -1005,6 +1009,7 @@
               <th>#</th>
               <th>Ator</th>
               <th>Modelo</th>
+              <th>Plataforma</th>
               <th>Dineg</th>
               <th>Região</th>
               <th>Regional</th>
@@ -1212,14 +1217,14 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBase();
 // ─── RULES ────────────────────────────────────────────────────────────────────
 
 let rules = [
-  { ator:'Iclientes', modelo:'IAD',     dineg:'10', regiao:'1',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'',          carteira:'',        produto:'',                   segmento:'', conditions:[{ funcionais:['111222333','444555666','777888999','222333444'], carteira:'02_6001', plataforma:'', produto:'' }] },
-  { ator:'ION',       modelo:'FISICA',  dineg:'',   regiao:'',   regional:'1002', plataforma:'',     coordenadora:'7003', coordenada:'',     funcional:'',          carteira:'',        produto:'Conta Corrente',     segmento:'3', conditions:[] },
-  { ator:'GM',        modelo:'IUD',     dineg:'25', regiao:'',   regional:'',     plataforma:'6005', coordenadora:'',     coordenada:'',     funcional:'555666777', carteira:'01_6005', produto:'',                   segmento:'',  conditions:[] },
-  { ator:'Central',   modelo:'SD',      dineg:'',   regiao:'4',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'',          carteira:'',        produto:'LCI',                segmento:'4', conditions:[] },
-  { ator:'Iclientes', modelo:'SDEMP',   dineg:'42', regiao:'5',  regional:'5001', plataforma:'',     coordenadora:'7008', coordenada:'8012', funcional:'',          carteira:'',        produto:'',                   segmento:'5', conditions:[] },
-  { ator:'ION',       modelo:'CONECTA', dineg:'',   regiao:'',   regional:'',     plataforma:'6011', coordenadora:'7011', coordenada:'',     funcional:'',          carteira:'01_6011', produto:'',                   segmento:'',  conditions:[] },
-  { ator:'GM',        modelo:'IAD',     dineg:'63', regiao:'',   regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'300400500', carteira:'',        produto:'CDB',                segmento:'3', conditions:[] },
-  { ator:'Central',   modelo:'FISICA',  dineg:'88', regiao:'9',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'',          carteira:'',        produto:'Previdência Privada', segmento:'2', conditions:[] },
+  { ator:'Iclientes', modelo:'IAD',     plat_canal:'',     dineg:'10', regiao:'1',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'',          carteira:'',        produto:'',                   segmento:'', conditions:[{ funcionais:['111222333','444555666','777888999','222333444'], carteira:'02_6001', plataforma:'', produto:'' }] },
+  { ator:'ION',       modelo:'FISICA',  plat_canal:'6024', dineg:'',   regiao:'',   regional:'1002', plataforma:'',     coordenadora:'7003', coordenada:'',     funcional:'',          carteira:'',        produto:'Conta Corrente',     segmento:'3', conditions:[] },
+  { ator:'GM',        modelo:'IUD',     plat_canal:'',     dineg:'25', regiao:'',   regional:'',     plataforma:'6005', coordenadora:'',     coordenada:'',     funcional:'555666777', carteira:'01_6005', produto:'',                   segmento:'',  conditions:[] },
+  { ator:'Central',   modelo:'SD',      plat_canal:'',     dineg:'',   regiao:'4',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'',          carteira:'',        produto:'LCI',                segmento:'4', conditions:[] },
+  { ator:'Iclientes', modelo:'SDEMP',   plat_canal:'6047', dineg:'42', regiao:'5',  regional:'5001', plataforma:'',     coordenadora:'7008', coordenada:'8012', funcional:'',          carteira:'',        produto:'',                   segmento:'5', conditions:[] },
+  { ator:'ION',       modelo:'CONECTA', plat_canal:'',     dineg:'',   regiao:'',   regional:'',     plataforma:'6011', coordenadora:'7011', coordenada:'',     funcional:'',          carteira:'01_6011', produto:'',                   segmento:'',  conditions:[] },
+  { ator:'GM',        modelo:'IAD',     plat_canal:'',     dineg:'63', regiao:'',   regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'300400500', carteira:'',        produto:'CDB',                segmento:'3', conditions:[] },
+  { ator:'Central',   modelo:'FISICA',  plat_canal:'',     dineg:'88', regiao:'9',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'',          carteira:'',        produto:'Previdência Privada', segmento:'2', conditions:[] },
 ];
 
 const KEYS = ['dineg','regiao','regional','plataforma','coordenadora','coordenada','funcional','carteira','produto','segmento'];
@@ -1233,7 +1238,7 @@ function renderRules() {
   const tbody = document.getElementById('rules-body');
 
   if (!rules.length) {
-    tbody.innerHTML = `<tr><td colspan="14"><div class="empty-state">Nenhuma regra cadastrada. Selecione Ator, Modelo e clique em +.</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="15"><div class="empty-state">Nenhuma regra cadastrada. Selecione Ator, Modelo e clique em +.</div></td></tr>`;
     updateSEIdSelect();
     return;
   }
@@ -1245,6 +1250,7 @@ function renderRules() {
         <td>${i + 1}</td>
         <td><span class="tag tag-orange">${r.ator}</span></td>
         <td><span class="tag tag-green">${r.modelo}</span></td>
+        ${cell(r.plat_canal)}
         ${cell(r.dineg)}${cell(r.regiao)}${cell(r.regional)}${cell(r.plataforma)}
         ${cell(r.coordenadora)}${cell(r.coordenada)}${cell(r.funcional)}
         ${cell(r.carteira)}${cell(r.produto)}${cell(r.segmento)}
@@ -1265,7 +1271,7 @@ function renderRules() {
       html += `
         <tr class="row-se">
           <td class="indent-arrow">↳</td>
-          <td colspan="12"><div class="se-condition-text">
+          <td colspan="13"><div class="se-condition-text">
             <span class="badge-se">SE</span>
             funcional ∈ { ${chips} }
             <span class="se-arrow">→</span>
@@ -1275,7 +1281,7 @@ function renderRules() {
         </tr>
         <tr class="row-senao">
           <td class="indent-arrow">↳</td>
-          <td colspan="12"><div class="se-condition-text">
+          <td colspan="13"><div class="se-condition-text">
             <span class="badge-senao">SENÃO</span>
             ${negStr}
           </div></td>
@@ -1292,7 +1298,12 @@ function removeRule(i) { rules.splice(i, 1); renderRules(); }
 function removeCondition(ri, ci) { rules[ri].conditions.splice(ci, 1); renderRules(); }
 
 function addRule() {
-  const r = { ator: document.getElementById('sel-ator').value, modelo: document.getElementById('sel-modelo').value, conditions: [] };
+  const r = {
+    ator:       document.getElementById('sel-ator').value,
+    modelo:     document.getElementById('sel-modelo').value,
+    plat_canal: document.getElementById('sel-plataforma').value.trim(),
+    conditions: []
+  };
   KEYS.forEach(k => { r[k] = document.getElementById('f-' + k).value.trim(); });
   rules.push(r);
   renderRules();
