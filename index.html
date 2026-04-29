@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Motor de Distribuição — Portal de Parametrização</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange:        #F97316;
+      --orange-h:      #EA6C0A;
+      --orange-lt:     #FFF7ED;
+      --orange-mid:    #FED7AA;
+      --orange-dark:   #C2410C;
+
+      --sidebar-w:     240px;
+      --sidebar-bg:    #FFFFFF;
+      --sidebar-border:#F0E8DF;
+      --sidebar-text:  #6B7280;
+      --sidebar-text-h:#374151;
+      --sidebar-act-bg:#FFF7ED;
+      --sidebar-act:   #C2410C;
+
+      --bg:            #FDF8F3;
+      --surface:       #FFFFFF;
+      --border:        #EDE8E3;
+      --border-h:      #D6CFC8;
+      --text:          #1C1917;
+      --muted:         #78716C;
+      --radius:        10px;
+      --shadow:        0 1px 3px rgba(120,80,40,.06), 0 4px 14px rgba(120,80,40,.06);
+
+      --success:       #059669;
+      --danger:        #DC2626;
+      --tag-bg:        #EEF2FF;
+      --tag-text:      #4338CA;
+
+      --se-bg:         #FFFBF7;
+      --se-border:     #FDCFA4;
+    }
+
+    html, body { height: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      display: flex;
+    }
+
+    /* ──────────────────────────────────── SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 18px 18px;
+      border-bottom: 1px solid var(--sidebar-border);
+    }
+
+    .brand-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #F97316, #FDBA74);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: -.5px;
+      flex-shrink: 0;
+      box-shadow: 0 3px 10px rgba(249,115,22,.25);
+    }
+
+    .brand-text strong {
+      display: block;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .brand-text span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      overflow-y: auto;
+    }
+
+    .nav-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #D1C5BC;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 14px 8px 5px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      color: var(--sidebar-text);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .13s, color .13s;
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .nav-item::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #E5DDD8;
+      flex-shrink: 0;
+      transition: background .15s, transform .2s, box-shadow .2s;
+    }
+
+    .nav-item:hover {
+      background: #FBF6F2;
+      color: var(--sidebar-text-h);
+    }
+
+    .nav-item:hover::before { background: #D6C8C0; }
+
+    .nav-item.active {
+      background: var(--sidebar-act-bg);
+      color: var(--sidebar-act);
+      font-weight: 600;
+    }
+
+    .nav-item.active::before {
+      background: var(--orange);
+      transform: scale(1.35);
+      box-shadow: 0 0 7px rgba(249,115,22,.45);
+    }
+
+    .sidebar-footer {
+      padding: 14px 16px;
+      border-top: 1px solid var(--sidebar-border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #F97316, #FDBA74);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(249,115,22,.22);
+    }
+
+    .user-info strong {
+      display: block;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .user-info span {
+      display: block;
+      color: var(--muted);
+      font-size: 10.5px;
+    }
+
+    /* ──────────────────────────────────── TOPBAR */
+    .layout-main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 4px rgba(120,80,40,.05);
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .breadcrumb-sep { color: #D6C8C0; }
+
+    .breadcrumb-active {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .env-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 11px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 11.5px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .env-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    /* ──────────────────────────────────── CONTENT */
+    .content {
+      padding: 28px;
+      flex: 1;
+    }
+
+    .page-head { margin-bottom: 22px; }
+
+    .page-head h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .page-head p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ──────────────────────────────────── CARDS */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px 24px;
+      margin-bottom: 18px;
+      max-width: 1360px;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding-bottom: 15px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .badge {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--orange);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 7px rgba(249,115,22,.3);
+    }
+
+    .badge-green {
+      background: var(--success);
+      box-shadow: 0 2px 7px rgba(5,150,105,.25);
+    }
+
+    /* ──────────────────────────────────── FORM */
+    .selector-row {
+      display: flex;
+      gap: 14px;
+      align-items: flex-end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    select,
+    input[type="text"],
+    input[type="number"] {
+      height: 40px;
+      padding: 0 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s, background .15s;
+      font-family: inherit;
+    }
+
+    select {
+      min-width: 195px;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='6' viewBox='0 0 11 6'%3E%3Cpath d='M1 1l4.5 4 4.5-4' stroke='%2378716C' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    input { width: 100%; }
+
+    select:hover:not(:disabled),
+    input:hover {
+      border-color: var(--border-h);
+    }
+
+    select:focus, input:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(249,115,22,.12);
+      background: #FFFCF9;
+    }
+
+    select:disabled {
+      background: #FAF6F2;
+      color: #A89E96;
+      cursor: not-allowed;
+      opacity: .75;
+    }
+
+    /* Buttons */
+    .btn-circle {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: var(--orange);
+      color: #fff;
+      font-size: 24px;
+      font-weight: 300;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background .13s, transform .12s, box-shadow .15s;
+      line-height: 1;
+      box-shadow: 0 2px 8px rgba(249,115,22,.35);
+    }
+
+    .btn-circle:hover:not(:disabled) {
+      background: var(--orange-h);
+      transform: scale(1.08);
+      box-shadow: 0 4px 14px rgba(249,115,22,.4);
+    }
+
+    .btn-circle:active:not(:disabled) { transform: scale(.96); }
+
+    .btn-circle:disabled {
+      background: #E5DDD8;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .btn-remove {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 1px solid #FECACA;
+      background: #FEF2F2;
+      color: var(--danger);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+      transition: background .13s, transform .1s;
+    }
+
+    .btn-remove:hover { background: #FEE2E2; transform: scale(1.1); }
+
+    .btn-ghost {
+      height: 38px;
+      padding: 0 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      border: 1.5px solid var(--border);
+      font-family: inherit;
+      transition: background .13s, border-color .13s;
+    }
+
+    .btn-ghost:hover { background: var(--bg); border-color: var(--border-h); }
+
+    /* Criteria grid */
+    .criteria-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px 16px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 1100px) { .criteria-grid { grid-template-columns: repeat(4,1fr); } }
+    @media (max-width:  900px) { .criteria-grid { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width:  600px) { .criteria-grid { grid-template-columns: repeat(2,1fr); } }
+
+    .form-footer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ──────────────────────────────────── SE SECTION */
+    .se-section {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .se-toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-se-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--se-bg);
+      border: 1.5px solid var(--se-border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      color: var(--orange-dark);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .13s;
+      user-select: none;
+    }
+
+    .btn-se-toggle:hover { background: #FFF0E0; }
+
+    .se-hint { font-size: 12px; color: var(--muted); }
+
+    .se-panel {
+      margin-top: 14px;
+      padding: 16px 18px;
+      background: var(--se-bg);
+      border: 1.5px solid var(--se-border);
+      border-radius: var(--radius);
+    }
+
+    .se-panel-note {
+      font-size: 12px;
+      color: #A16207;
+      margin-bottom: 14px;
+    }
+
+    .se-grid {
+      display: grid;
+      grid-template-columns: 220px 1fr 148px 148px 1fr;
+      gap: 14px 16px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 1000px) { .se-grid { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width:  640px) { .se-grid { grid-template-columns: 1fr 1fr; } }
+
+    .btn-se-add {
+      height: 36px;
+      padding: 0 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      font-family: inherit;
+      transition: background .13s, transform .1s;
+      box-shadow: 0 2px 7px rgba(249,115,22,.28);
+    }
+
+    .btn-se-add:hover { background: var(--orange-h); transform: translateY(-1px); }
+
+    /* ──────────────────────────────────── TABLE */
+    .count-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px; height: 22px;
+      padding: 0 7px;
+      border-radius: 99px;
+      background: var(--orange);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: 0 2px 7px rgba(249,115,22,.3);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+    thead th {
+      background: #FBF7F3;
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    thead th:first-child {
+      border-left: 3px solid var(--orange);
+    }
+
+    thead th:last-child { width: 44px; text-align: center; }
+
+    tbody tr { border-bottom: 1px solid #F5EFEA; transition: background .1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #FFF7ED; }
+
+    tbody td {
+      padding: 9px 12px;
+      white-space: nowrap;
+      color: var(--text);
+    }
+
+    tbody td:last-child { text-align: center; }
+
+    .empty-state {
+      padding: 44px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .tag-orange { background: #FFF0E0; color: var(--orange-dark); }
+    .tag-green  { background: #D1FAE5; color: #065F46; }
+    .tag-indigo { background: var(--tag-bg); color: var(--tag-text); }
+
+    td.empty-cell { color: #D6CFC8; }
+
+    /* SE / SENÃO sub-rows */
+    tbody .row-se { border-bottom: none; }
+    tbody .row-se td { background: #FFF7ED; padding-top: 5px; padding-bottom: 4px; }
+    tbody .row-se:hover td { background: #FFEDD5; }
+
+    tbody .row-senao td { background: #F0FDF4; padding-top: 4px; padding-bottom: 7px; }
+    tbody .row-senao:hover td { background: #DCFCE7; }
+
+    td.indent-arrow { color: #C4B5A8; font-size: 15px; }
+
+    .badge-se {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 5px;
+      background: #FED7AA;
+      color: #7C2D12;
+      font-size: 10.5px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .badge-senao {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 5px;
+      background: #A7F3D0;
+      color: #064E3B;
+      font-size: 10.5px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .se-condition-text {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+      font-size: 12px;
+    }
+
+    .se-func-chip {
+      display: inline-flex;
+      padding: 2px 7px;
+      background: #EEF2FF;
+      color: #4338CA;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .se-arrow { color: var(--muted); }
+    .se-result { font-weight: 600; }
+
+    .btn-remove-cond {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 1px solid #FECACA;
+      background: transparent;
+      color: var(--danger);
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: background .13s;
+      padding: 0;
+    }
+
+    .btn-remove-cond:hover { background: #FEE2E2; }
+  </style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══════════════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">MD</div>
+    <div class="brand-text">
+      <strong>Parâmetros</strong>
+      <span>Portal de Configuração</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <p class="nav-label">Principal</p>
+    <a class="nav-item" href="#">Dashboard</a>
+    <a class="nav-item active" href="#">Motor de Distribuição</a>
+    <a class="nav-item" href="#">Regras Ativas</a>
+
+    <p class="nav-label">Gestão</p>
+    <a class="nav-item" href="#">Histórico</a>
+    <a class="nav-item" href="#">Usuários</a>
+
+    <p class="nav-label">Sistema</p>
+    <a class="nav-item" href="#">Configurações</a>
+    <a class="nav-item" href="#">Suporte</a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-avatar">LV</div>
+    <div class="user-info">
+      <strong>Lucas V.</strong>
+      <span>Administrador</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ════════════════════════════════════════════════════════════════ -->
+<div class="layout-main">
+
+  <header class="topbar">
+    <div class="breadcrumb">
+      <span>Início</span>
+      <span class="breadcrumb-sep">›</span>
+      <span>Configurações</span>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-active">Motor de Distribuição</span>
+    </div>
+    <div class="env-badge">
+      <div class="env-dot"></div>
+      Ambiente: Produção
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="page-head">
+      <h1>Motor de Distribuição</h1>
+      <p>Selecione Ator e Modelo, preencha as regras de distribuição e clique em <strong>+</strong> para adicionar.</p>
+    </div>
+
+    <!-- Card 1 – Ator e Modelo -->
+    <div class="card">
+      <div class="card-title">
+        <span class="badge">1</span> Ator e Modelo
+      </div>
+      <div class="selector-row">
+        <div class="field">
+          <label>Ator / Canal</label>
+          <select id="sel-ator">
+            <option value="">Selecione...</option>
+            <option>Iclientes</option>
+            <option>ION</option>
+            <option>GM</option>
+            <option>Central</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Modelo</label>
+          <select id="sel-modelo" disabled>
+            <option value="">Selecione...</option>
+            <option>IAD</option>
+            <option>FISICA</option>
+            <option>IUD</option>
+            <option>SD</option>
+            <option>SDEMP</option>
+            <option>CONECTA</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2 – Regras de distribuição -->
+    <div class="card">
+      <div class="card-title">
+        <span class="badge">2</span> Regras de distribuição
+        <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted);">— preencha os campos que definem a distribuição</span>
+      </div>
+
+      <datalist id="dl-dineg"></datalist>
+      <datalist id="dl-regiao"></datalist>
+      <datalist id="dl-regional"></datalist>
+      <datalist id="dl-coordenadora"></datalist>
+      <datalist id="dl-coordenada"></datalist>
+      <datalist id="dl-plataforma"></datalist>
+      <datalist id="dl-carteira"></datalist>
+      <datalist id="dl-funcional"></datalist>
+
+      <div class="criteria-grid">
+        <div class="field">
+          <label>Dineg</label>
+          <input id="f-dineg" type="number" list="dl-dineg" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Região</label>
+          <input id="f-regiao" type="number" list="dl-regiao" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Regional</label>
+          <input id="f-regional" type="number" list="dl-regional" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Plataforma</label>
+          <input id="f-plataforma" type="number" list="dl-plataforma" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Coordenadora</label>
+          <input id="f-coordenadora" type="number" list="dl-coordenadora" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Coordenada</label>
+          <input id="f-coordenada" type="number" list="dl-coordenada" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Funcional</label>
+          <input id="f-funcional" type="text" list="dl-funcional" autocomplete="off" maxlength="9" />
+        </div>
+        <div class="field">
+          <label>Carteira</label>
+          <input id="f-carteira" type="text" list="dl-carteira" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Produto</label>
+          <input id="f-produto" type="text" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Segmento</label>
+          <input id="f-segmento" type="number" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <button class="btn-ghost" onclick="clearCriteria()">Limpar campos</button>
+        <button id="btn-add" class="btn-circle" disabled title="Adicionar regra" onclick="addRule()">+</button>
+      </div>
+
+      <!-- SE section -->
+      <div class="se-section">
+        <div class="se-toggle-row">
+          <button class="btn-se-toggle" onclick="toggleSE()">
+            SE <span id="se-caret">▶</span>
+          </button>
+          <span class="se-hint">adicione uma exceção para funcionais específicos em uma regra já cadastrada</span>
+        </div>
+
+        <div id="se-panel" style="display:none">
+          <div style="height:14px"></div>
+          <div class="se-panel">
+            <p class="se-panel-note">Selecione a regra de referência e informe quais funcionais terão comportamento diferente dos demais.</p>
+            <div class="se-grid">
+              <div class="field">
+                <label>ID da Regra</label>
+                <select id="se-id">
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Funcionais (separados por vírgula)</label>
+                <input id="se-funcional" type="text" placeholder="111222333, 444555666..." autocomplete="off" />
+              </div>
+              <div class="field">
+                <label>Carteira</label>
+                <input id="se-carteira" type="text" autocomplete="off" />
+              </div>
+              <div class="field">
+                <label>Plataforma</label>
+                <input id="se-plataforma" type="number" autocomplete="off" />
+              </div>
+              <div class="field">
+                <label>Produto</label>
+                <input id="se-produto" type="text" autocomplete="off" />
+              </div>
+            </div>
+            <button class="btn-se-add" onclick="addCondition()">Adicionar SE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3 – Regras cadastradas -->
+    <div class="card">
+      <div class="card-title">
+        <span class="badge badge-green">✓</span>
+        Regras cadastradas
+        <span class="count-pill" id="rules-count">8</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Ator</th>
+              <th>Modelo</th>
+              <th>Dineg</th>
+              <th>Região</th>
+              <th>Regional</th>
+              <th>Plataforma</th>
+              <th>Coordenadora</th>
+              <th>Coordenada</th>
+              <th>Funcional</th>
+              <th>Carteira</th>
+              <th>Produto</th>
+              <th>Segmento</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="rules-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const BD = {
+  dinegs: [10, 25, 42, 63, 88],
+  regioes: { 10:[1,2], 25:[3,4], 42:[5,6], 63:[7,8], 88:[9] },
+  regionais: { 1:[1001,1002], 2:[2001], 3:[3001,3002], 4:[4001], 5:[5001,5002], 6:[6001], 7:[7001], 8:[8001], 9:[9001,9002] },
+  coordenadoras: { 1001:[7001,7002], 1002:[7003], 2001:[7004], 3001:[7005], 3002:[7006], 4001:[7007], 5001:[7008], 5002:[7009], 6001:[7010], 7001:[7011], 8001:[7012], 9001:[7013], 9002:[7014] },
+  plataformas: { 1001:[6001,6002], 1002:[6003], 2001:[6004], 3001:[6005], 3002:[6006], 4001:[6007], 5001:[6008], 5002:[6009], 6001:[6010], 7001:[6011], 8001:[6012], 9001:[6013], 9002:[6014] },
+  coordenadas: { 7001:[8001,8002], 7002:[8003], 7003:[8004,8005], 7004:[8006], 7005:[8007,8008], 7006:[8009], 7007:[8010,8011], 7008:[8012], 7009:[8013,8014], 7010:[8015], 7011:[8016,8017], 7012:[8018], 7013:[8019], 7014:[8020] },
+  platData: {
+    6001:{ carteira:'01_6001', funcionais:['111222333','444555666'] },
+    6002:{ carteira:'01_6002', funcionais:['777888999'] },
+    6003:{ carteira:'01_6003', funcionais:['222333444'] },
+    6004:{ carteira:'01_6004', funcionais:['333444555'] },
+    6005:{ carteira:'01_6005', funcionais:['555666777'] },
+    6006:{ carteira:'01_6006', funcionais:['666777888'] },
+    6007:{ carteira:'01_6007', funcionais:['777888999','888999000'] },
+    6008:{ carteira:'01_6008', funcionais:['999000111'] },
+    6009:{ carteira:'01_6009', funcionais:['100200300'] },
+    6010:{ carteira:'01_6010', funcionais:['200300400'] },
+    6011:{ carteira:'01_6011', funcionais:['300400500','400500600'] },
+    6012:{ carteira:'01_6012', funcionais:['500600700'] },
+    6013:{ carteira:'01_6013', funcionais:['600700800'] },
+    6014:{ carteira:'01_6014', funcionais:['700800900'] },
+  },
+};
+
+let rules = [
+  { ator:'Iclientes', modelo:'IAD',     dineg:'10', regiao:'1',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'',          carteira:'',        produto:'',                   segmento:'', conditions:[{ funcionais:['111222333','444555666','777888999','222333444'], carteira:'02_6001', plataforma:'', produto:'' }] },
+  { ator:'ION',       modelo:'FISICA',  dineg:'',   regiao:'',   regional:'1002', plataforma:'',     coordenadora:'7003', coordenada:'',     funcional:'',          carteira:'',        produto:'Conta Corrente',     segmento:'3', conditions:[] },
+  { ator:'GM',        modelo:'IUD',     dineg:'25', regiao:'',   regional:'',     plataforma:'6005', coordenadora:'',     coordenada:'',     funcional:'555666777', carteira:'01_6005', produto:'',                   segmento:'',  conditions:[] },
+  { ator:'Central',   modelo:'SD',      dineg:'',   regiao:'4',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'',          carteira:'',        produto:'LCI',                segmento:'4', conditions:[] },
+  { ator:'Iclientes', modelo:'SDEMP',   dineg:'42', regiao:'5',  regional:'5001', plataforma:'',     coordenadora:'7008', coordenada:'8012', funcional:'',          carteira:'',        produto:'',                   segmento:'5', conditions:[] },
+  { ator:'ION',       modelo:'CONECTA', dineg:'',   regiao:'',   regional:'',     plataforma:'6011', coordenadora:'7011', coordenada:'',     funcional:'',          carteira:'01_6011', produto:'',                   segmento:'',  conditions:[] },
+  { ator:'GM',        modelo:'IAD',     dineg:'63', regiao:'',   regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'300400500', carteira:'',        produto:'CDB',                segmento:'3', conditions:[] },
+  { ator:'Central',   modelo:'FISICA',  dineg:'88', regiao:'9',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'',          carteira:'',        produto:'Previdência Privada', segmento:'2', conditions:[] },
+];
+
+const KEYS = ['dineg','regiao','regional','plataforma','coordenadora','coordenada','funcional','carteira','produto','segmento'];
+
+function setDl(id, vals) {
+  document.getElementById(id).innerHTML = vals.map(v => `<option value="${v}">`).join('');
+}
+
+function allValues(obj) {
+  return [...new Set(Object.values(obj).flat())].sort((a,b) => a > b ? 1 : -1);
+}
+
+function initAllDl() {
+  setDl('dl-dineg',        BD.dinegs);
+  setDl('dl-regiao',       allValues(BD.regioes));
+  setDl('dl-regional',     allValues(BD.regionais));
+  setDl('dl-coordenadora', allValues(BD.coordenadoras));
+  setDl('dl-coordenada',   allValues(BD.coordenadas));
+  setDl('dl-plataforma',   allValues(BD.plataformas));
+  setDl('dl-carteira',     Object.values(BD.platData).map(d => d.carteira));
+  setDl('dl-funcional',    [...new Set(Object.values(BD.platData).flatMap(d => d.funcionais))].sort());
+}
+
+document.getElementById('f-dineg').addEventListener('input', function() {
+  const v = Number(this.value);
+  setDl('dl-regiao',       BD.regioes[v]        || allValues(BD.regioes));
+  setDl('dl-regional',     allValues(BD.regionais));
+  setDl('dl-coordenadora', allValues(BD.coordenadoras));
+  setDl('dl-plataforma',   allValues(BD.plataformas));
+});
+
+document.getElementById('f-regiao').addEventListener('input', function() {
+  const v = Number(this.value);
+  const reg = BD.regionais[v] || allValues(BD.regionais);
+  setDl('dl-regional', reg);
+  const coords = reg.flatMap(r => BD.coordenadoras[r] || []);
+  const plats  = reg.flatMap(r => BD.plataformas[r]   || []);
+  setDl('dl-coordenadora', coords.length ? coords : allValues(BD.coordenadoras));
+  setDl('dl-plataforma',   plats.length  ? plats  : allValues(BD.plataformas));
+});
+
+document.getElementById('f-regional').addEventListener('input', function() {
+  const v = Number(this.value);
+  setDl('dl-coordenadora', BD.coordenadoras[v] || allValues(BD.coordenadoras));
+  setDl('dl-plataforma',   BD.plataformas[v]   || allValues(BD.plataformas));
+});
+
+document.getElementById('f-coordenadora').addEventListener('input', function() {
+  setDl('dl-coordenada', BD.coordenadas[Number(this.value)] || allValues(BD.coordenadas));
+});
+
+document.getElementById('f-plataforma').addEventListener('input', function() {
+  const pd = BD.platData[Number(this.value)];
+  if (pd) {
+    setDl('dl-carteira',  [pd.carteira]);
+    setDl('dl-funcional', pd.funcionais);
+  } else {
+    setDl('dl-carteira',  Object.values(BD.platData).map(d => d.carteira));
+    setDl('dl-funcional', [...new Set(Object.values(BD.platData).flatMap(d => d.funcionais))].sort());
+  }
+});
+
+function cell(v) {
+  return v ? `<td>${v}</td>` : `<td class="empty-cell">—</td>`;
+}
+
+function renderRules() {
+  document.getElementById('rules-count').textContent = rules.length;
+  const tbody = document.getElementById('rules-body');
+
+  if (!rules.length) {
+    tbody.innerHTML = `<tr><td colspan="14"><div class="empty-state">Nenhuma regra cadastrada. Selecione Ator, Modelo e clique em +.</div></td></tr>`;
+    updateSEIdSelect();
+    return;
+  }
+
+  let html = '';
+  rules.forEach((r, i) => {
+    html += `
+      <tr>
+        <td>${i + 1}</td>
+        <td><span class="tag tag-orange">${r.ator}</span></td>
+        <td><span class="tag tag-green">${r.modelo}</span></td>
+        ${cell(r.dineg)}${cell(r.regiao)}${cell(r.regional)}${cell(r.plataforma)}
+        ${cell(r.coordenadora)}${cell(r.coordenada)}${cell(r.funcional)}
+        ${cell(r.carteira)}${cell(r.produto)}${cell(r.segmento)}
+        <td><button class="btn-remove" onclick="removeRule(${i})" title="Remover">−</button></td>
+      </tr>`;
+
+    (r.conditions || []).forEach((cond, ci) => {
+      const chips = cond.funcionais.map(f => `<span class="se-func-chip">${f}</span>`).join(' ');
+      const parts = [];
+      if (cond.carteira)   parts.push(`carteira: <strong>${cond.carteira}</strong>`);
+      if (cond.plataforma) parts.push(`plataforma: <strong>${cond.plataforma}</strong>`);
+      if (cond.produto)    parts.push(`produto: <strong>${cond.produto}</strong>`);
+      const resultStr = parts.join(' · ') || '—';
+      const negStr    = cond.carteira
+        ? `demais colaboradores — carteira ${cond.carteira} não visível`
+        : `demais colaboradores — condição padrão aplicada`;
+
+      html += `
+        <tr class="row-se">
+          <td class="indent-arrow">↳</td>
+          <td colspan="12"><div class="se-condition-text">
+            <span class="badge-se">SE</span>
+            funcional ∈ { ${chips} }
+            <span class="se-arrow">→</span>
+            <span class="se-result">${resultStr}</span>
+          </div></td>
+          <td><button class="btn-remove-cond" onclick="removeCondition(${i},${ci})" title="Remover exceção">−</button></td>
+        </tr>
+        <tr class="row-senao">
+          <td class="indent-arrow">↳</td>
+          <td colspan="12"><div class="se-condition-text">
+            <span class="badge-senao">SENÃO</span>
+            ${negStr}
+          </div></td>
+          <td></td>
+        </tr>`;
+    });
+  });
+
+  tbody.innerHTML = html;
+  updateSEIdSelect();
+}
+
+function removeRule(i) { rules.splice(i, 1); renderRules(); }
+
+function removeCondition(ri, ci) { rules[ri].conditions.splice(ci, 1); renderRules(); }
+
+function addRule() {
+  const r = { ator: document.getElementById('sel-ator').value, modelo: document.getElementById('sel-modelo').value, conditions: [] };
+  KEYS.forEach(k => { r[k] = document.getElementById('f-' + k).value.trim(); });
+  rules.push(r);
+  renderRules();
+  const btn = document.getElementById('btn-add');
+  btn.textContent = '✓';
+  btn.style.background = 'var(--success)';
+  setTimeout(() => { btn.textContent = '+'; btn.style.background = ''; }, 1100);
+}
+
+function clearCriteria() {
+  KEYS.forEach(k => { document.getElementById('f-' + k).value = ''; });
+  initAllDl();
+}
+
+function toggleSE() {
+  const panel = document.getElementById('se-panel');
+  const caret = document.getElementById('se-caret');
+  const open  = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  caret.textContent   = open ? '▶' : '▼';
+  if (!open) updateSEIdSelect();
+}
+
+function updateSEIdSelect() {
+  const sel  = document.getElementById('se-id');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Selecione a regra...</option>' +
+    rules.map((r, i) => `<option value="${i+1}">#${i+1} — ${r.ator} / ${r.modelo}</option>`).join('');
+  if (rules.some((_, i) => String(i + 1) === prev)) sel.value = prev;
+}
+
+function addCondition() {
+  const idVal    = document.getElementById('se-id').value;
+  if (!idVal) { alert('Selecione a regra de referência.'); return; }
+  const funcText = document.getElementById('se-funcional').value.trim();
+  if (!funcText) { alert('Informe ao menos um funcional.'); return; }
+  const carteira   = document.getElementById('se-carteira').value.trim();
+  const plataforma = document.getElementById('se-plataforma').value.trim();
+  const produto    = document.getElementById('se-produto').value.trim();
+  if (!carteira && !plataforma && !produto) {
+    alert('Informe ao menos um resultado (carteira, plataforma ou produto).');
+    return;
+  }
+  const ri = parseInt(idVal) - 1;
+  if (!rules[ri].conditions) rules[ri].conditions = [];
+  rules[ri].conditions.push({ funcionais: funcText.split(',').map(f => f.trim()).filter(Boolean), carteira, plataforma, produto });
+  renderRules();
+  ['se-funcional','se-carteira','se-plataforma','se-produto'].forEach(id => { document.getElementById(id).value = ''; });
+}
+
+const selAtor   = document.getElementById('sel-ator');
+const selModelo = document.getElementById('sel-modelo');
+const btnAdd    = document.getElementById('btn-add');
+
+selAtor.addEventListener('change', () => {
+  selModelo.disabled = !selAtor.value;
+  if (!selAtor.value) selModelo.value = '';
+  btnAdd.disabled = !(selAtor.value && selModelo.value);
+});
+
+selModelo.addEventListener('change', () => {
+  btnAdd.disabled = !(selAtor.value && selModelo.value);
+});
+
+initAllDl();
+renderRules();
+</script>
+</body>
+</html>
