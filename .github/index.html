@@ -2149,12 +2149,7 @@
               <tbody id="client-prio-body"></tbody>
             </table>
           </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding:0 2px">
-            <div style="display:flex;align-items:center;gap:6px">
-              <button id="q2-prev" onclick="_q2GoPage(_q2Page-1)" style="background:var(--border);border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--text)">‹ Ant.</button>
-              <span id="q2-page-info" style="font-size:11px;color:var(--muted)">Página 1 de 3</span>
-              <button id="q2-next" onclick="_q2GoPage(_q2Page+1)" style="background:var(--border);border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--text)">Próx. ›</button>
-            </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px;padding:0 2px">
             <button onclick="exportQ2CSV()" style="background:var(--orange-lt);border:1px solid var(--orange-mid);color:var(--orange-dark);border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer;font-weight:600">⬇ Extrair CSV</button>
           </div>
         </div>
@@ -3089,7 +3084,6 @@
       })()
 
       let _insightsReady = false
-      let _q2Page = 0
       let _q2Changes = []
 
       function renderInsights() {
@@ -3116,13 +3110,9 @@
       }
 
       function _renderClientPrio() {
-        const totalPages = Math.ceil(BEST_CLIENTS.length / 5)
-        const pageData = BEST_CLIENTS.slice(_q2Page * 5, (_q2Page + 1) * 5)
         document.getElementById('q2-count').textContent = BEST_CLIENTS.length
         document.getElementById('client-prio-body').innerHTML =
-          pageData.map((c, j) => {
-            const i = _q2Page * 5 + j
-            return `
+          BEST_CLIENTS.map((c, i) => `
     <tr>
       <td style="text-align:center">
         <input type="checkbox" class="row-check check-q2" data-cpf="${c.cpf}" data-i="${i}" onchange="updateSelCount()" />
@@ -3135,26 +3125,11 @@
         <span class="tag ${c.fila === 1 ? 'tag-orange' : 'tag-indigo'}" style="font-size:10px;padding:2px 7px" id="q2-fila-${i}">Fila ${c.fila}</span>
       </td>
       <td style="text-align:center;color:var(--muted)" id="q2-pos-${i}">#${c.prioridade}</td>
-    </tr>`
-          }).join('')
-        const pageInfo = document.getElementById('q2-page-info')
-        if (pageInfo) pageInfo.textContent = `Página ${_q2Page + 1} de ${totalPages}`
-        const prev = document.getElementById('q2-prev')
-        const next = document.getElementById('q2-next')
-        if (prev) prev.disabled = _q2Page === 0
-        if (next) next.disabled = _q2Page >= totalPages - 1
+    </tr>`).join('')
         const now = new Date()
         const fmt = d => d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-        const nextT = new Date(now.getTime() + 3600000)
         const ri = document.getElementById('q2-refresh-info')
-        if (ri) ri.textContent = `Atualizado às ${fmt(now)} · próx. às ${fmt(nextT)}`
-      }
-
-      function _q2GoPage(n) {
-        const total = Math.ceil(BEST_CLIENTS.length / 5)
-        _q2Page = Math.max(0, Math.min(n, total - 1))
-        document.getElementById('chk-all-q2').checked = false
-        _renderClientPrio()
+        if (ri) ri.textContent = `Atualizado às ${fmt(now)} · próx. às ${fmt(new Date(now.getTime() + 3600000))}`
       }
 
       function _renderLeads24h() {
