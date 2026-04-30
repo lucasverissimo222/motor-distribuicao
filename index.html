@@ -913,6 +913,114 @@
     }
 
     .modal-body tbody tr:hover { background: #FFF7ED; }
+
+    /* ──────────────────────────────────── INSIGHTS */
+    .insight-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+      max-width: 900px;
+      overflow: hidden;
+    }
+    .insight-card-header {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 18px 24px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .insight-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .insight-icon-warn  { background: #FEF3C7; }
+    .insight-icon-blue  { background: #DBEAFE; }
+    .insight-icon-green { background: #D1FAE5; }
+    .insight-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .insight-sub   { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .insight-tag {
+      display: inline-flex; align-items: center;
+      padding: 2px 9px; border-radius: 99px;
+      font-size: 10.5px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+    }
+    .insight-tag-warn  { background: #FEF3C7; color: #92400E; }
+    .insight-tag-blue  { background: #DBEAFE; color: #1E3A5F; }
+    .insight-tag-green { background: #D1FAE5; color: #064E3B; }
+    .insight-card-body { padding: 20px 24px; }
+    .insight-body-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+    .insight-nc-row {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 12px; margin: 14px 0;
+    }
+    @media (max-width:800px) { .insight-nc-row { grid-template-columns: 1fr; } }
+    .insight-nc-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px 14px;
+      background: #FFF8F1; border: 1px solid #FDE8CC; border-radius: 8px;
+    }
+    .insight-nc-item > div { display: flex; flex-direction: column; gap: 3px; }
+    .insight-nc-item strong { color: var(--text); font-size: 13px; }
+    .insight-nc-item span  { color: var(--muted); font-size: 11.5px; }
+    .nc-badge { font-size: 16px; color: #D97706; flex-shrink: 0; margin-top: 2px; }
+    .insight-arrow-row {
+      display: flex; align-items: center; gap: 12px; margin: 14px 0;
+    }
+    .insight-arrow-row::before, .insight-arrow-row::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+    .insight-arrow-label {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .07em; white-space: nowrap;
+    }
+    .consequence-row { display: flex; flex-direction: column; gap: 8px; }
+    .consequence-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px;
+      font-size: 13px; color: var(--text);
+    }
+    .consequence-icon { font-size: 15px; flex-shrink: 0; }
+    .vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px; }
+    @media (max-width:700px) { .vs-grid { grid-template-columns: 1fr; } }
+    .vs-col { padding: 16px; border-radius: 8px; }
+    .vs-col-now   { background: #F3F4F6; border: 1px solid #E5E7EB; }
+    .vs-col-ideal { background: #F0FDF4; border: 1px solid #BBF7D0; }
+    .vs-col h4 {
+      font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .07em; margin-bottom: 12px;
+    }
+    .vs-col-now h4   { color: #6B7280; }
+    .vs-col-ideal h4 { color: #065F46; }
+    .vs-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,.05); font-size: 13px;
+    }
+    .vs-item:last-child { border-bottom: none; }
+    .vs-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .vs-dot-gray  { background: #9CA3AF; }
+    .vs-dot-green { background: var(--success); }
+    .vs-example { font-size: 12px; gap: 6px; flex-wrap: wrap; }
+    .example-badge {
+      display: inline-flex; align-items: center;
+      padding: 1px 7px; border-radius: 99px;
+      background: #D1FAE5; color: #065F46;
+      font-size: 10px; font-weight: 700; flex-shrink: 0;
+    }
+    .insight-callout {
+      margin-top: 16px; padding: 12px 16px;
+      background: var(--orange-lt);
+      border-left: 3px solid var(--orange);
+      border-radius: 6px; font-size: 13px; color: var(--text); line-height: 1.6;
+    }
+    .insight-decision-box {
+      padding: 16px 18px;
+      background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px;
+    }
+    .decision-label {
+      font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .07em; color: #1D4ED8; margin-bottom: 8px;
+    }
   </style>
 </head>
 <body>
@@ -930,8 +1038,9 @@
   <nav class="sidebar-nav">
     <p class="nav-label">Principal</p>
     <a class="nav-item" href="#">Dashboard</a>
-    <a class="nav-item active" href="#">Motor de Distribuição</a>
+    <a class="nav-item active" data-view="main" href="#" onclick="showView('main');return false">Motor de Distribuição</a>
     <a class="nav-item" href="#">Regras Ativas</a>
+    <a class="nav-item" data-view="insights" href="#" onclick="showView('insights');return false">Insights</a>
 
     <p class="nav-label">Gestão</p>
     <a class="nav-item nav-item-db" href="#" onclick="openBase('dineg');return false">Tabela Dineg</a>
@@ -963,7 +1072,7 @@
       <span class="breadcrumb-sep">›</span>
       <span>Configurações</span>
       <span class="breadcrumb-sep">›</span>
-      <span class="breadcrumb-active">Motor de Distribuição</span>
+      <span class="breadcrumb-active" id="topbar-title">Motor de Distribuição</span>
     </div>
     <div class="env-badge">
       <div class="env-dot"></div>
@@ -971,7 +1080,7 @@
     </div>
   </header>
 
-  <div class="content">
+  <div class="content" id="view-main">
     <div class="page-head">
       <h1>Motor de Distribuição</h1>
       <p>Selecione Ator e Modelo, preencha as regras de distribuição e clique em <strong>+</strong> para adicionar.</p>
@@ -1150,6 +1259,135 @@
           </thead>
           <tbody id="rules-body"></tbody>
         </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ INSIGHTS VIEW ═══════════════════════════════════════════════════════ -->
+  <div class="content" id="view-insights" style="display:none">
+    <div class="page-head">
+      <h1>Insights</h1>
+      <p>Análise do modelo de distribuição atual e oportunidades de evolução.</p>
+    </div>
+
+    <!-- Card 1 — Distribuição sem capacidade -->
+    <div class="insight-card">
+      <div class="insight-card-header">
+        <div class="insight-icon insight-icon-warn">⚠</div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">
+            <h3 class="insight-title">Distribuição por filtro — sem capacidade ou performance</h3>
+            <span class="insight-tag insight-tag-warn">Atenção</span>
+          </div>
+          <p class="insight-sub">Risco de alocação ineficiente de gerentes</p>
+        </div>
+      </div>
+      <div class="insight-card-body">
+        <p class="insight-body-text">Hoje a regra seleciona gerentes com base em <strong>quem bate no filtro</strong>. Três variáveis críticas ficam de fora do cálculo:</p>
+        <div class="insight-nc-row">
+          <div class="insight-nc-item">
+            <span class="nc-badge">⊘</span>
+            <div>
+              <strong>Performance do gerente</strong>
+              <span>Conversão, NPS e histórico de resultados não são considerados</span>
+            </div>
+          </div>
+          <div class="insight-nc-item">
+            <span class="nc-badge">⊘</span>
+            <div>
+              <strong>Capacidade atual</strong>
+              <span>Quantos leads o gerente já está atendendo hoje</span>
+            </div>
+          </div>
+          <div class="insight-nc-item">
+            <span class="nc-badge">⊘</span>
+            <div>
+              <strong>SLA de atendimento</strong>
+              <span>Tempo médio de resposta e taxa de abandono do gerente</span>
+            </div>
+          </div>
+        </div>
+        <div class="insight-arrow-row">
+          <span class="insight-arrow-label">Isso pode gerar</span>
+        </div>
+        <div class="consequence-row">
+          <div class="consequence-item">
+            <span class="consequence-icon">🔴</span>
+            <span>Gerente sobrecarregado recebendo mais leads do que consegue atender</span>
+          </div>
+          <div class="consequence-item">
+            <span class="consequence-icon">🟡</span>
+            <span>Lead <strong>ruim</strong> indo para o gerente <strong>bom</strong> — desperdício de talento</span>
+          </div>
+          <div class="consequence-item">
+            <span class="consequence-icon">🟡</span>
+            <span>Lead <strong>bom</strong> indo para o gerente <strong>ruim</strong> — perda de conversão</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2 — Prioridade dinâmica -->
+    <div class="insight-card">
+      <div class="insight-card-header">
+        <div class="insight-icon insight-icon-blue">⚡</div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">
+            <h3 class="insight-title">Falta prioridade dinâmica</h3>
+            <span class="insight-tag insight-tag-blue">Oportunidade</span>
+          </div>
+          <p class="insight-sub">Bancos líderes já operam com prioridade em tempo real</p>
+        </div>
+      </div>
+      <div class="insight-card-body">
+        <div class="vs-grid">
+          <div class="vs-col vs-col-now">
+            <h4>Hoje (estático)</h4>
+            <div class="vs-item"><span class="vs-dot vs-dot-gray"></span> Prioridade 1</div>
+            <div class="vs-item"><span class="vs-dot vs-dot-gray"></span> Prioridade 2</div>
+            <div class="vs-item"><span class="vs-dot vs-dot-gray"></span> Prioridade 3</div>
+            <p style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5">Fixo, definido no cadastro. Não muda em tempo real — o que era P1 ontem continua P1 amanhã.</p>
+          </div>
+          <div class="vs-col vs-col-ideal">
+            <h4>Bancos grandes (dinâmico)</h4>
+            <div class="vs-item"><span class="vs-dot vs-dot-green"></span> Prioridade muda em tempo real</div>
+            <div class="vs-item vs-example">
+              <span class="example-badge">Exemplo</span>
+              Cliente respondeu e-mail → vira <strong>P1</strong>
+            </div>
+            <div class="vs-item vs-example">
+              <span class="example-badge">Exemplo</span>
+              Cliente VIP abandonou carrinho → pode virar <strong>P1</strong> também
+            </div>
+          </div>
+        </div>
+        <p class="insight-callout">A prioridade dinâmica aumenta a taxa de conversão ao garantir que o gerente certo atende no momento certo — quando o cliente está mais propenso a responder.</p>
+      </div>
+    </div>
+
+    <!-- Card 3 — Sobre o mockup -->
+    <div class="insight-card">
+      <div class="insight-card-header">
+        <div class="insight-icon insight-icon-green">ℹ</div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">
+            <h3 class="insight-title">Sobre este mockup</h3>
+            <span class="insight-tag insight-tag-green">Referência</span>
+          </div>
+          <p class="insight-sub">O que está funcional e o que está simulado</p>
+        </div>
+      </div>
+      <div class="insight-card-body">
+        <p class="insight-body-text" style="margin-bottom:16px">
+          O mockup é <strong>funcional</strong> — você pode interagir, abrir as seções, ligar os toggles e cadastrar regras para ver como ficaria a tabela de resultados.
+        </p>
+        <div class="insight-decision-box">
+          <div class="decision-label">Ponto de decisão para o TI</div>
+          <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">
+            O preview do ranking usa <strong>dados fake</strong> por enquanto, mas na versão real esse preview viria direto da <strong>base D-1</strong>, filtrado pelo Ator + Modelo + Filtros já selecionados. O time veria os funcionais elegíveis <strong>ranqueados</strong> antes de confirmar o cadastro — o que ajuda bastante na validação antes de publicar a regra em produção.
+          </p>
+        </div>
       </div>
     </div>
 
@@ -1648,6 +1886,15 @@ selAtor.addEventListener('change', () => {
 selModelo.addEventListener('change', () => {
   btnAdd.disabled = !_canAdd();
 });
+
+function showView(v) {
+  document.getElementById('view-main').style.display     = v === 'main'     ? '' : 'none';
+  document.getElementById('view-insights').style.display = v === 'insights' ? '' : 'none';
+  document.getElementById('topbar-title').textContent    = v === 'insights' ? 'Insights' : 'Motor de Distribuição';
+  document.querySelectorAll('.nav-item[data-view]').forEach(el => {
+    el.classList.toggle('active', el.dataset.view === v);
+  });
+}
 
 initAllDl();
 renderRules();
