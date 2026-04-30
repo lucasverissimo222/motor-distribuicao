@@ -1021,6 +1021,48 @@
       font-size: 10.5px; font-weight: 700; text-transform: uppercase;
       letter-spacing: .07em; color: #1D4ED8; margin-bottom: 8px;
     }
+
+    /* ── insights layout ── */
+    .insights-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .insights-right { display: flex; flex-direction: column; gap: 18px; }
+    @media (max-width:1200px) { .insights-layout { grid-template-columns: 1fr; } }
+    .i-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+    }
+    .i-card-title {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .08em;
+    }
+    .i-scroll { overflow-y: auto; max-height: 560px; overflow-x: auto; }
+    .i-scroll table { font-size: 12px; }
+    .i-search {
+      padding: 8px 14px; border-bottom: 1px solid var(--border); background: #FDFAF7;
+    }
+    .i-search input { height: 32px; font-size: 12px; }
+    th.th-act {
+      background: #EFF6FF !important; color: #1D4ED8 !important;
+      border-bottom: 2px solid #BFDBFE !important;
+    }
+    td.td-act { background: #F8FAFF; }
+    td.td-act input, td.td-act select {
+      height: 30px; font-size: 12px; border-radius: 6px;
+      border: 1.5px solid #BFDBFE; padding: 0 8px; width: 100%;
+      font-family: inherit; color: var(--text); background: #fff;
+      outline: none;
+    }
+    td.td-act select { cursor: pointer; min-width: 90px; }
+    td.td-act input[type="number"] { width: 78px; }
+    td.td-act input[type="text"]   { width: 110px; }
+    .fila-badge-1 { background:#FFF0E0; color:var(--orange-dark); }
+    .fila-badge-2 { background:#EEF2FF; color:var(--tag-text); }
   </style>
 </head>
 <body>
@@ -1268,129 +1310,91 @@
   <div class="content" id="view-insights" style="display:none">
     <div class="page-head">
       <h1>Insights</h1>
-      <p>Análise do modelo de distribuição atual e oportunidades de evolução.</p>
+      <p>Base D-1 · Leads ativos · Análise de performance e priorização de clientes</p>
     </div>
 
-    <!-- Card 1 — Distribuição sem capacidade -->
-    <div class="insight-card">
-      <div class="insight-card-header">
-        <div class="insight-icon insight-icon-warn">⚠</div>
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">
-            <h3 class="insight-title">Distribuição por filtro — sem capacidade ou performance</h3>
-            <span class="insight-tag insight-tag-warn">Atenção</span>
-          </div>
-          <p class="insight-sub">Risco de alocação ineficiente de gerentes</p>
-        </div>
-      </div>
-      <div class="insight-card-body">
-        <p class="insight-body-text">Hoje a regra seleciona gerentes com base em <strong>quem bate no filtro</strong>. Três variáveis críticas ficam de fora do cálculo:</p>
-        <div class="insight-nc-row">
-          <div class="insight-nc-item">
-            <span class="nc-badge">⊘</span>
-            <div>
-              <strong>Performance do gerente</strong>
-              <span>Conversão, NPS e histórico de resultados não são considerados</span>
-            </div>
-          </div>
-          <div class="insight-nc-item">
-            <span class="nc-badge">⊘</span>
-            <div>
-              <strong>Capacidade atual</strong>
-              <span>Quantos leads o gerente já está atendendo hoje</span>
-            </div>
-          </div>
-          <div class="insight-nc-item">
-            <span class="nc-badge">⊘</span>
-            <div>
-              <strong>SLA de atendimento</strong>
-              <span>Tempo médio de resposta e taxa de abandono do gerente</span>
-            </div>
-          </div>
-        </div>
-        <div class="insight-arrow-row">
-          <span class="insight-arrow-label">Isso pode gerar</span>
-        </div>
-        <div class="consequence-row">
-          <div class="consequence-item">
-            <span class="consequence-icon">🔴</span>
-            <span>Gerente sobrecarregado recebendo mais leads do que consegue atender</span>
-          </div>
-          <div class="consequence-item">
-            <span class="consequence-icon">🟡</span>
-            <span>Lead <strong>ruim</strong> indo para o gerente <strong>bom</strong> — desperdício de talento</span>
-          </div>
-          <div class="consequence-item">
-            <span class="consequence-icon">🟡</span>
-            <span>Lead <strong>bom</strong> indo para o gerente <strong>ruim</strong> — perda de conversão</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="insights-layout">
 
-    <!-- Card 2 — Prioridade dinâmica -->
-    <div class="insight-card">
-      <div class="insight-card-header">
-        <div class="insight-icon insight-icon-blue">⚡</div>
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">
-            <h3 class="insight-title">Falta prioridade dinâmica</h3>
-            <span class="insight-tag insight-tag-blue">Oportunidade</span>
-          </div>
-          <p class="insight-sub">Bancos líderes já operam com prioridade em tempo real</p>
+      <!-- ── ESQUERDA: Lead / Oferta ── -->
+      <div class="i-card">
+        <div class="i-card-title">
+          <span class="badge" style="background:var(--tag-text)">L</span>
+          Lead / Oferta
+          <span class="count-pill" id="leads-count">500</span>
+        </div>
+        <div class="i-search">
+          <input type="text" id="leads-search" placeholder="Filtrar produto, CPF, carteira…" oninput="filterLeads()" autocomplete="off" />
+        </div>
+        <div class="i-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>CPF</th>
+                <th>Carteira</th>
+                <th>Plat.</th>
+                <th>Seg.</th>
+              </tr>
+            </thead>
+            <tbody id="leads-tbody"></tbody>
+          </table>
         </div>
       </div>
-      <div class="insight-card-body">
-        <div class="vs-grid">
-          <div class="vs-col vs-col-now">
-            <h4>Hoje (estático)</h4>
-            <div class="vs-item"><span class="vs-dot vs-dot-gray"></span> Prioridade 1</div>
-            <div class="vs-item"><span class="vs-dot vs-dot-gray"></span> Prioridade 2</div>
-            <div class="vs-item"><span class="vs-dot vs-dot-gray"></span> Prioridade 3</div>
-            <p style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5">Fixo, definido no cadastro. Não muda em tempo real — o que era P1 ontem continua P1 amanhã.</p>
-          </div>
-          <div class="vs-col vs-col-ideal">
-            <h4>Bancos grandes (dinâmico)</h4>
-            <div class="vs-item"><span class="vs-dot vs-dot-green"></span> Prioridade muda em tempo real</div>
-            <div class="vs-item vs-example">
-              <span class="example-badge">Exemplo</span>
-              Cliente respondeu e-mail → vira <strong>P1</strong>
-            </div>
-            <div class="vs-item vs-example">
-              <span class="example-badge">Exemplo</span>
-              Cliente VIP abandonou carrinho → pode virar <strong>P1</strong> também
-            </div>
-          </div>
-        </div>
-        <p class="insight-callout">A prioridade dinâmica aumenta a taxa de conversão ao garantir que o gerente certo atende no momento certo — quando o cliente está mais propenso a responder.</p>
-      </div>
-    </div>
 
-    <!-- Card 3 — Sobre o mockup -->
-    <div class="insight-card">
-      <div class="insight-card-header">
-        <div class="insight-icon insight-icon-green">ℹ</div>
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">
-            <h3 class="insight-title">Sobre este mockup</h3>
-            <span class="insight-tag insight-tag-green">Referência</span>
-          </div>
-          <p class="insight-sub">O que está funcional e o que está simulado</p>
-        </div>
-      </div>
-      <div class="insight-card-body">
-        <p class="insight-body-text" style="margin-bottom:16px">
-          O mockup é <strong>funcional</strong> — você pode interagir, abrir as seções, ligar os toggles e cadastrar regras para ver como ficaria a tabela de resultados.
-        </p>
-        <div class="insight-decision-box">
-          <div class="decision-label">Ponto de decisão para o TI</div>
-          <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">
-            O preview do ranking usa <strong>dados fake</strong> por enquanto, mas na versão real esse preview viria direto da <strong>base D-1</strong>, filtrado pelo Ator + Modelo + Filtros já selecionados. O time veria os funcionais elegíveis <strong>ranqueados</strong> antes de confirmar o cadastro — o que ajuda bastante na validação antes de publicar a regra em produção.
-          </p>
-        </div>
-      </div>
-    </div>
+      <!-- ── DIREITA: dois quadrantes ── -->
+      <div class="insights-right">
 
+        <!-- Q1 – Performance por Funcional -->
+        <div class="i-card">
+          <div class="i-card-title">
+            <span class="badge">1</span>
+            Performance por Funcional — últimos 30 dias
+          </div>
+          <div class="i-scroll" style="max-height:none;overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Funcional</th>
+                  <th>Carteira</th>
+                  <th>Produto predominante na carteira</th>
+                  <th>Mais vendido (30d)</th>
+                  <th>Leads ativos</th>
+                  <th>Conversão</th>
+                </tr>
+              </thead>
+              <tbody id="func-perf-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Q2 – Priorização de Clientes -->
+        <div class="i-card">
+          <div class="i-card-title">
+            <span class="badge">2</span>
+            Priorização de Clientes — base de contratos
+            <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)">melhores clientes · ações de migração</span>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>CPF</th>
+                  <th>Nº Produtos</th>
+                  <th>Valor acumulado</th>
+                  <th>Fila atual</th>
+                  <th>Posição</th>
+                  <th class="th-act">Migrar carteira</th>
+                  <th class="th-act">Mudar fila</th>
+                  <th class="th-act">Nova posição</th>
+                </tr>
+              </thead>
+              <tbody id="client-prio-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /insights-right -->
+    </div><!-- /insights-layout -->
   </div>
 </div>
 
@@ -1887,6 +1891,125 @@ selModelo.addEventListener('change', () => {
   btnAdd.disabled = !_canAdd();
 });
 
+// ─── INSIGHTS DATA ────────────────────────────────────────────────────────────
+
+const PRODUTOS_LIST = [
+  'Conta Corrente','CDB','LCI','LCA','Previdência Privada',
+  'Cartão de Crédito','Seguro Auto','Consórcio Imóvel','Crédito Pessoal','Investimento'
+];
+
+const BASE_LEADS = (() => {
+  const rows = [];
+  for (let i = 0; i < 500; i++) {
+    const plataforma = 6001 + (i * 23 % 399);
+    rows.push({
+      produto:    PRODUTOS_LIST[(i * 3 + 7) % PRODUTOS_LIST.length],
+      cpf:        String(10000000000 + i * 37337).slice(0, 11),
+      carteira:   '01_' + plataforma,
+      plataforma,
+      segmento:   1 + (i * 3 % 5),
+      fila:       1 + (i % 2),
+      prioridade: 1 + (i * 13 % 50),
+      valor:      (5 + (i * 17 % 995)) * 1000,
+      nProdutos:  1 + (i * 7 % 8)
+    });
+  }
+  return rows;
+})();
+
+const TOP10_FUNC = (() => {
+  const indices = [0, 20, 45, 72, 100, 130, 155, 178, 190, 199];
+  return indices.map((fi, i) => {
+    const f = BASE_FUNC[fi];
+    const matching = BASE_LEADS.filter(l => l.carteira === f.carteira);
+    const cnt = {};
+    matching.forEach(l => { cnt[l.produto] = (cnt[l.produto] || 0) + 1; });
+    const top = Object.entries(cnt).sort((a,b) => b[1]-a[1])[0];
+    return {
+      funcional:          f.funcional,
+      carteira:           f.carteira,
+      produtoPredominante: top ? top[0] : PRODUTOS_LIST[i % PRODUTOS_LIST.length],
+      maisVendido30d:     PRODUTOS_LIST[(i * 4 + 2) % PRODUTOS_LIST.length],
+      leadsAtivos:        5 + (i * 7 % 25),
+      conversao:          (35 + i * 6 % 50) + '%'
+    };
+  });
+})();
+
+const BEST_CLIENTS = [...BASE_LEADS]
+  .sort((a,b) => b.nProdutos - a.nProdutos || b.valor - a.valor)
+  .slice(0, 15);
+
+let _insightsReady = false;
+let _leadsFiltered = BASE_LEADS;
+
+function renderInsights() {
+  if (_insightsReady) return;
+  _insightsReady = true;
+  _renderLeadsRows(BASE_LEADS);
+  _renderFuncPerf();
+  _renderClientPrio();
+}
+
+function _renderLeadsRows(rows) {
+  document.getElementById('leads-count').textContent = rows.length;
+  document.getElementById('leads-tbody').innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.produto}</td>
+      <td style="font-family:monospace;font-size:11px">${r.cpf}</td>
+      <td><span class="tag tag-indigo" style="font-size:10px;padding:2px 6px">${r.carteira}</span></td>
+      <td>${r.plataforma}</td>
+      <td style="text-align:center">${r.segmento}</td>
+    </tr>`).join('');
+}
+
+function filterLeads() {
+  const q = document.getElementById('leads-search').value.toLowerCase().trim();
+  _leadsFiltered = q
+    ? BASE_LEADS.filter(r =>
+        r.produto.toLowerCase().includes(q) ||
+        r.cpf.includes(q) ||
+        r.carteira.includes(q) ||
+        String(r.plataforma).includes(q) ||
+        String(r.segmento).includes(q))
+    : BASE_LEADS;
+  _renderLeadsRows(_leadsFiltered);
+}
+
+function _renderFuncPerf() {
+  document.getElementById('func-perf-body').innerHTML = TOP10_FUNC.map(f => `
+    <tr>
+      <td style="font-family:monospace;font-size:11px">${f.funcional}</td>
+      <td><span class="tag tag-indigo" style="font-size:10px;padding:2px 6px">${f.carteira}</span></td>
+      <td>${f.produtoPredominante}</td>
+      <td><span class="tag tag-orange" style="font-size:10px;padding:2px 6px">${f.maisVendido30d}</span></td>
+      <td style="text-align:center">${f.leadsAtivos}</td>
+      <td style="text-align:center"><span class="tag tag-green" style="font-size:10px;padding:2px 6px">${f.conversao}</span></td>
+    </tr>`).join('');
+}
+
+function _renderClientPrio() {
+  document.getElementById('client-prio-body').innerHTML = BEST_CLIENTS.map((c, i) => `
+    <tr>
+      <td style="font-family:monospace;font-size:11px">${c.cpf}</td>
+      <td style="text-align:center"><strong>${c.nProdutos}</strong></td>
+      <td style="text-align:right">${c.valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</td>
+      <td style="text-align:center">
+        <span class="tag ${c.fila===1?'tag-orange':'tag-indigo'}" style="font-size:10px;padding:2px 7px">Fila ${c.fila}</span>
+      </td>
+      <td style="text-align:center;color:var(--muted)">#${c.prioridade}</td>
+      <td class="td-act"><input type="text" placeholder="01_XXXX" /></td>
+      <td class="td-act">
+        <select>
+          <option value="">—</option>
+          <option value="1">Fila 1</option>
+          <option value="2">Fila 2</option>
+        </select>
+      </td>
+      <td class="td-act"><input type="number" placeholder="Posição" min="1" /></td>
+    </tr>`).join('');
+}
+
 function showView(v) {
   document.getElementById('view-main').style.display     = v === 'main'     ? '' : 'none';
   document.getElementById('view-insights').style.display = v === 'insights' ? '' : 'none';
@@ -1894,6 +2017,7 @@ function showView(v) {
   document.querySelectorAll('.nav-item[data-view]').forEach(el => {
     el.classList.toggle('active', el.dataset.view === v);
   });
+  if (v === 'insights') renderInsights();
 }
 
 initAllDl();
