@@ -1022,6 +1022,72 @@
       letter-spacing: .07em; color: #1D4ED8; margin-bottom: 8px;
     }
 
+    /* ── action bar ── */
+    .action-bar {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 12px 18px; margin-bottom: 18px;
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .action-bar-label {
+      font-size: 10.5px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .07em; white-space: nowrap;
+      padding-right: 6px; border-right: 1px solid var(--border); margin-right: 2px;
+    }
+    .action-bar .ab-input {
+      height: 34px; font-size: 12px; border-radius: 7px;
+      border: 1.5px solid var(--border); padding: 0 10px;
+      font-family: inherit; color: var(--text); background: var(--surface);
+      outline: none; transition: border-color .15s, box-shadow .15s;
+    }
+    .action-bar .ab-input:focus {
+      border-color: var(--orange); box-shadow: 0 0 0 3px rgba(249,115,22,.12);
+    }
+    .ab-text { width: 138px; }
+    .ab-num  { width: 96px; }
+    .ab-sel  { min-width: 110px; cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2378716C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 9px center; padding-right: 26px; }
+    .btn-apply {
+      height: 34px; padding: 0 16px; border-radius: 7px; border: none;
+      background: var(--orange); color: #fff; font-size: 12px; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: background .13s;
+      box-shadow: 0 2px 7px rgba(249,115,22,.28);
+    }
+    .btn-apply:hover { background: var(--orange-h); }
+    .btn-whatsapp {
+      height: 34px; padding: 0 14px; border-radius: 7px; border: none;
+      background: #25D366; color: #fff; font-size: 12px; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: background .13s;
+      display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 2px 7px rgba(37,211,102,.25); margin-left: auto;
+    }
+    .btn-whatsapp:hover { background: #1DAA56; }
+    .ab-sel-count {
+      font-size: 11.5px; color: var(--orange-dark); font-weight: 600;
+      background: var(--orange-lt); padding: 3px 10px; border-radius: 99px;
+    }
+    input[type="checkbox"].row-check, input[type="checkbox"].hdr-check {
+      width: 15px; height: 15px; cursor: pointer; accent-color: var(--orange);
+    }
+    .pcm-modal-overlay {
+      position: fixed; inset: 0; background: rgba(28,25,23,.5);
+      display: none; align-items: center; justify-content: center;
+      z-index: 500; padding: 20px;
+    }
+    .pcm-modal-overlay.open { display: flex; }
+    .pcm-modal-panel {
+      background: var(--surface); border-radius: 14px;
+      width: min(580px, 95vw); display: flex; flex-direction: column;
+      overflow: hidden; box-shadow: 0 24px 64px rgba(28,25,23,.22);
+    }
+    #pcm-message {
+      font-family: 'Courier New', monospace; font-size: 12.5px; line-height: 1.7;
+      white-space: pre; background: #F8F9FA; border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 16px; margin: 16px 20px 0;
+      resize: none; height: 280px; outline: none; color: var(--text);
+    }
+
     /* ── insights layout ── */
     .insights-layout {
       display: grid;
@@ -1088,6 +1154,7 @@
     <a class="nav-item nav-item-db" href="#" onclick="openBase('dineg');return false">Tabela Dineg</a>
     <a class="nav-item nav-item-db" href="#" onclick="openBase('coord');return false">Base Coordenadora</a>
     <a class="nav-item nav-item-db" href="#" onclick="openBase('func');return false">Base Funcional</a>
+    <a class="nav-item nav-item-db" href="#" onclick="openBase('leads');return false">Lead / Oferta</a>
     <a class="nav-item" href="#">Histórico</a>
     <a class="nav-item" href="#">Usuários</a>
 
@@ -1310,91 +1377,96 @@
   <div class="content" id="view-insights" style="display:none">
     <div class="page-head">
       <h1>Insights</h1>
-      <p>Base D-1 · Leads ativos · Análise de performance e priorização de clientes</p>
+      <p>Base D-1 · Performance de funcionais · Priorização de clientes</p>
     </div>
 
-    <div class="insights-layout">
-
-      <!-- ── ESQUERDA: Lead / Oferta ── -->
-      <div class="i-card">
-        <div class="i-card-title">
-          <span class="badge" style="background:var(--tag-text)">L</span>
-          Lead / Oferta
-          <span class="count-pill" id="leads-count">500</span>
-        </div>
-        <div class="i-search">
-          <input type="text" id="leads-search" placeholder="Filtrar produto, CPF, carteira…" oninput="filterLeads()" autocomplete="off" />
-        </div>
-        <div class="i-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Produto</th>
-                <th>CPF</th>
-                <th>Carteira</th>
-                <th>Plat.</th>
-                <th>Seg.</th>
-              </tr>
-            </thead>
-            <tbody id="leads-tbody"></tbody>
-          </table>
-        </div>
+    <!-- Q1 – Performance por Funcional -->
+    <div class="i-card" style="margin-bottom:18px">
+      <div class="i-card-title">
+        <span class="badge">1</span>
+        Performance por Funcional — últimos 30 dias
       </div>
+      <div style="overflow-x:auto">
+        <table style="font-size:12px">
+          <thead>
+            <tr>
+              <th>Funcional</th>
+              <th>Carteira</th>
+              <th>Produto predominante na carteira</th>
+              <th>Mais vendido (30d)</th>
+              <th>Conversão (30d)</th>
+              <th>Leads ativos</th>
+            </tr>
+          </thead>
+          <tbody id="func-perf-body"></tbody>
+        </table>
+      </div>
+    </div>
 
-      <!-- ── DIREITA: dois quadrantes ── -->
-      <div class="insights-right">
+    <!-- Barra de ação compartilhada (Q2 + Q3) -->
+    <div class="action-bar">
+      <span class="action-bar-label">Ação em lote</span>
+      <input class="ab-input ab-text"  type="text"   id="act-carteira" placeholder="Nova carteira (01_XXXX)" />
+      <select class="ab-input ab-sel"  id="act-fila">
+        <option value="">Mudar fila…</option>
+        <option value="1">Fila 1</option>
+        <option value="2">Fila 2</option>
+      </select>
+      <input class="ab-input ab-num"  type="number"  id="act-posicao" placeholder="Nova posição" min="1" />
+      <button class="btn-apply" onclick="applyActions()">Aplicar</button>
+      <span class="ab-sel-count" id="ab-count" style="display:none">0 selecionados</span>
+      <button class="btn-whatsapp" onclick="sendPCMWhatsApp()">&#128241; Enviar PCM WhatsApp</button>
+    </div>
 
-        <!-- Q1 – Performance por Funcional -->
-        <div class="i-card">
-          <div class="i-card-title">
-            <span class="badge">1</span>
-            Performance por Funcional — últimos 30 dias
-          </div>
-          <div class="i-scroll" style="max-height:none;overflow-x:auto">
-            <table>
-              <thead>
-                <tr>
-                  <th>Funcional</th>
-                  <th>Carteira</th>
-                  <th>Produto predominante na carteira</th>
-                  <th>Mais vendido (30d)</th>
-                  <th>Leads ativos</th>
-                  <th>Conversão</th>
-                </tr>
-              </thead>
-              <tbody id="func-perf-body"></tbody>
-            </table>
-          </div>
-        </div>
+    <!-- Q2 – Priorização de Clientes -->
+    <div class="i-card" style="margin-bottom:18px">
+      <div class="i-card-title">
+        <span class="badge">2</span>
+        Priorização de Clientes — base de contratos
+        <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)">melhores clientes por produto / valor</span>
+        <span class="count-pill" id="q2-count">15</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="font-size:12px">
+          <thead>
+            <tr>
+              <th style="width:32px"><input type="checkbox" class="hdr-check" id="chk-all-q2" onclick="toggleAll('q2')" /></th>
+              <th>CPF</th>
+              <th>Nº Produtos</th>
+              <th>Valor acumulado</th>
+              <th>Fila atual</th>
+              <th>Posição</th>
+            </tr>
+          </thead>
+          <tbody id="client-prio-body"></tbody>
+        </table>
+      </div>
+    </div>
 
-        <!-- Q2 – Priorização de Clientes -->
-        <div class="i-card">
-          <div class="i-card-title">
-            <span class="badge">2</span>
-            Priorização de Clientes — base de contratos
-            <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)">melhores clientes · ações de migração</span>
-          </div>
-          <div style="overflow-x:auto">
-            <table>
-              <thead>
-                <tr>
-                  <th>CPF</th>
-                  <th>Nº Produtos</th>
-                  <th>Valor acumulado</th>
-                  <th>Fila atual</th>
-                  <th>Posição</th>
-                  <th class="th-act">Migrar carteira</th>
-                  <th class="th-act">Mudar fila</th>
-                  <th class="th-act">Nova posição</th>
-                </tr>
-              </thead>
-              <tbody id="client-prio-body"></tbody>
-            </table>
-          </div>
-        </div>
+    <!-- Q3 – +24h na Fila 2 -->
+    <div class="i-card">
+      <div class="i-card-title">
+        <span class="badge" style="background:var(--danger)">!</span>
+        CPFs há +24h na Fila 2
+        <span class="count-pill" id="q3-count">—</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="font-size:12px">
+          <thead>
+            <tr>
+              <th style="width:32px"><input type="checkbox" class="hdr-check" id="chk-all-q3" onclick="toggleAll('q3')" /></th>
+              <th>CPF</th>
+              <th>Hrs. na fila</th>
+              <th>Produto</th>
+              <th>Carteira</th>
+              <th>Posição</th>
+            </tr>
+          </thead>
+          <tbody id="leads-24h-body"></tbody>
+        </table>
+      </div>
+    </div>
 
-      </div><!-- /insights-right -->
-    </div><!-- /insights-layout -->
   </div>
 </div>
 
@@ -1539,6 +1611,12 @@ const BASES = {
     sub:   '200 registros · fonte: SIRHH',
     cols:  ['#', 'Funcional', 'Carteira'],
     rows:  () => BASE_FUNC.map((r,i) => [i+1, r.funcional, r.carteira])
+  },
+  leads: {
+    title: 'Lead / Oferta',
+    sub:   '500 registros · base ativa de leads',
+    cols:  ['#', 'Produto', 'CPF', 'Carteira', 'Plataforma', 'Seg.', 'Fila', 'Posição', 'Hrs. fila'],
+    rows:  () => BASE_LEADS.map((r,i) => [i+1, r.produto, r.cpf, r.carteira, r.plataforma, r.segmento, 'Fila '+r.fila, '#'+r.prioridade, r.horasNaFila+'h'])
   }
 };
 
@@ -1903,15 +1981,21 @@ const BASE_LEADS = (() => {
   for (let i = 0; i < 500; i++) {
     const plataforma = 6001 + (i * 23 % 399);
     rows.push({
-      produto:    PRODUTOS_LIST[(i * 3 + 7) % PRODUTOS_LIST.length],
-      cpf:        String(10000000000 + i * 37337).slice(0, 11),
-      carteira:   '01_' + plataforma,
+      produto:     PRODUTOS_LIST[(i * 3 + 7) % PRODUTOS_LIST.length],
+      cpf:         String(10000000000 + i * 37337).slice(0, 11),
+      carteira:    '01_' + plataforma,
       plataforma,
-      segmento:   1 + (i * 3 % 5),
-      fila:       1 + (i % 2),
-      prioridade: 1 + (i * 13 % 50),
-      valor:      (5 + (i * 17 % 995)) * 1000,
-      nProdutos:  1 + (i * 7 % 8)
+      segmento:    1 + (i * 3 % 5),
+      fila:        1 + (i % 2),
+      prioridade:  1 + (i * 13 % 50),
+      valor:       (5 + (i * 17 % 995)) * 1000,
+      nProdutos:   1 + (i * 7 % 8),
+      horasNaFila: 1 + (i * 11 % 72),
+      dataCriacao: (() => {
+        const h = 1 + (i * 11 % 72);
+        const d = new Date(Date.now() - h * 3600000);
+        return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+      })()
     });
   }
   return rows;
@@ -1940,40 +2024,19 @@ const BEST_CLIENTS = [...BASE_LEADS]
   .sort((a,b) => b.nProdutos - a.nProdutos || b.valor - a.valor)
   .slice(0, 15);
 
+const LEADS_24H = [...BASE_LEADS]
+  .filter(r => r.fila === 2 && r.horasNaFila >= 24)
+  .sort((a,b) => b.horasNaFila - a.horasNaFila)
+  .slice(0, 20);
+
 let _insightsReady = false;
-let _leadsFiltered = BASE_LEADS;
 
 function renderInsights() {
   if (_insightsReady) return;
   _insightsReady = true;
-  _renderLeadsRows(BASE_LEADS);
   _renderFuncPerf();
   _renderClientPrio();
-}
-
-function _renderLeadsRows(rows) {
-  document.getElementById('leads-count').textContent = rows.length;
-  document.getElementById('leads-tbody').innerHTML = rows.map(r => `
-    <tr>
-      <td>${r.produto}</td>
-      <td style="font-family:monospace;font-size:11px">${r.cpf}</td>
-      <td><span class="tag tag-indigo" style="font-size:10px;padding:2px 6px">${r.carteira}</span></td>
-      <td>${r.plataforma}</td>
-      <td style="text-align:center">${r.segmento}</td>
-    </tr>`).join('');
-}
-
-function filterLeads() {
-  const q = document.getElementById('leads-search').value.toLowerCase().trim();
-  _leadsFiltered = q
-    ? BASE_LEADS.filter(r =>
-        r.produto.toLowerCase().includes(q) ||
-        r.cpf.includes(q) ||
-        r.carteira.includes(q) ||
-        String(r.plataforma).includes(q) ||
-        String(r.segmento).includes(q))
-    : BASE_LEADS;
-  _renderLeadsRows(_leadsFiltered);
+  _renderLeads24h();
 }
 
 function _renderFuncPerf() {
@@ -1983,31 +2046,119 @@ function _renderFuncPerf() {
       <td><span class="tag tag-indigo" style="font-size:10px;padding:2px 6px">${f.carteira}</span></td>
       <td>${f.produtoPredominante}</td>
       <td><span class="tag tag-orange" style="font-size:10px;padding:2px 6px">${f.maisVendido30d}</span></td>
-      <td style="text-align:center">${f.leadsAtivos}</td>
       <td style="text-align:center"><span class="tag tag-green" style="font-size:10px;padding:2px 6px">${f.conversao}</span></td>
+      <td style="text-align:center">${f.leadsAtivos}</td>
     </tr>`).join('');
 }
 
 function _renderClientPrio() {
-  document.getElementById('client-prio-body').innerHTML = BEST_CLIENTS.map((c, i) => `
+  document.getElementById('q2-count').textContent = BEST_CLIENTS.length;
+  document.getElementById('client-prio-body').innerHTML = BEST_CLIENTS.map((c,i) => `
     <tr>
+      <td style="text-align:center">
+        <input type="checkbox" class="row-check check-q2" data-cpf="${c.cpf}" data-i="${i}" onchange="updateSelCount()" />
+      </td>
       <td style="font-family:monospace;font-size:11px">${c.cpf}</td>
       <td style="text-align:center"><strong>${c.nProdutos}</strong></td>
       <td style="text-align:right">${c.valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</td>
       <td style="text-align:center">
-        <span class="tag ${c.fila===1?'tag-orange':'tag-indigo'}" style="font-size:10px;padding:2px 7px">Fila ${c.fila}</span>
+        <span class="tag ${c.fila===1?'tag-orange':'tag-indigo'}" style="font-size:10px;padding:2px 7px" id="q2-fila-${i}">Fila ${c.fila}</span>
       </td>
-      <td style="text-align:center;color:var(--muted)">#${c.prioridade}</td>
-      <td class="td-act"><input type="text" placeholder="01_XXXX" /></td>
-      <td class="td-act">
-        <select>
-          <option value="">—</option>
-          <option value="1">Fila 1</option>
-          <option value="2">Fila 2</option>
-        </select>
-      </td>
-      <td class="td-act"><input type="number" placeholder="Posição" min="1" /></td>
+      <td style="text-align:center;color:var(--muted)" id="q2-pos-${i}">#${c.prioridade}</td>
     </tr>`).join('');
+}
+
+function _renderLeads24h() {
+  document.getElementById('q3-count').textContent = LEADS_24H.length + ' CPFs';
+  document.getElementById('leads-24h-body').innerHTML = LEADS_24H.map((r,i) => `
+    <tr>
+      <td style="text-align:center">
+        <input type="checkbox" class="row-check check-q3" data-cpf="${r.cpf}" data-i="${i}" onchange="updateSelCount()" />
+      </td>
+      <td style="font-family:monospace;font-size:11px">${r.cpf}</td>
+      <td>
+        <span class="tag" style="background:#FEF2F2;color:var(--danger);font-size:10px;padding:2px 7px;font-weight:700">${r.horasNaFila}h</span>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${r.dataCriacao}</div>
+      </td>
+      <td>${r.produto}</td>
+      <td><span class="tag tag-indigo" style="font-size:10px;padding:2px 6px">${r.carteira}</span></td>
+      <td style="text-align:center;color:var(--muted)" id="q3-pos-${i}">#${r.prioridade}</td>
+    </tr>`).join('');
+}
+
+function updateSelCount() {
+  const n = document.querySelectorAll('.row-check:checked').length;
+  const el = document.getElementById('ab-count');
+  el.style.display = n ? '' : 'none';
+  el.textContent = n + (n === 1 ? ' selecionado' : ' selecionados');
+}
+
+function toggleAll(group) {
+  const hdr = document.getElementById('chk-all-' + group);
+  document.querySelectorAll('.check-' + group).forEach(c => { c.checked = hdr.checked; });
+  updateSelCount();
+}
+
+function applyActions() {
+  const checks = [...document.querySelectorAll('.row-check:checked')];
+  if (!checks.length) { alert('Selecione ao menos um registro.'); return; }
+  const newFila = document.getElementById('act-fila').value;
+  const newPos  = document.getElementById('act-posicao').value;
+  checks.forEach(cb => {
+    const group = cb.classList.contains('check-q2') ? 'q2' : 'q3';
+    const idx   = cb.dataset.i;
+    if (newFila) {
+      const el = document.getElementById(group + '-fila-' + idx);
+      if (el) {
+        el.textContent = 'Fila ' + newFila;
+        el.className = 'tag ' + (newFila === '1' ? 'tag-orange' : 'tag-indigo');
+        el.style.cssText = 'font-size:10px;padding:2px 7px';
+      }
+    }
+    if (newPos) {
+      const el = document.getElementById(group + '-pos-' + idx);
+      if (el) el.textContent = '#' + newPos;
+    }
+    cb.checked = false;
+  });
+  updateSelCount();
+  const btn = document.querySelector('.btn-apply');
+  btn.textContent = '✓ Aplicado'; btn.style.background = 'var(--success)';
+  setTimeout(() => { btn.textContent = 'Aplicar'; btn.style.background = ''; }, 1500);
+}
+
+function sendPCMWhatsApp() {
+  const checks = [...document.querySelectorAll('.row-check:checked')];
+  if (!checks.length) { alert('Selecione ao menos um registro para enviar.'); return; }
+  const newCarteira = document.getElementById('act-carteira').value.trim();
+  const newFila     = document.getElementById('act-fila').value;
+  const newPos      = document.getElementById('act-posicao').value;
+  const hoje = new Date().toLocaleDateString('pt-BR') + ' ' +
+               new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const cpfs = checks.map(cb => cb.dataset.cpf);
+  let msg = `📋 PCM — Motor de Distribuição\n📅 ${hoje}\n`;
+  if (newCarteira || newFila || newPos) {
+    msg += `\n✅ Ação solicitada:\n`;
+    if (newCarteira) msg += `  Nova carteira : ${newCarteira}\n`;
+    if (newFila)     msg += `  Mudar para    : Fila ${newFila}\n`;
+    if (newPos)      msg += `  Nova posição  : #${newPos}\n`;
+  }
+  msg += `\n👥 CPFs selecionados (${cpfs.length}):\n`;
+  cpfs.forEach(c => { msg += `  • ${c}\n`; });
+  msg += `\n— Enviado via Portal de Parametrização`;
+  document.getElementById('pcm-message').value = msg;
+  document.getElementById('pcm-modal').classList.add('open');
+}
+
+function closePCM() { document.getElementById('pcm-modal').classList.remove('open'); }
+
+function copyPCM(btn) {
+  navigator.clipboard.writeText(document.getElementById('pcm-message').value).catch(() => {
+    document.getElementById('pcm-message').select();
+    document.execCommand('copy');
+  });
+  btn.textContent = '✓ Copiado!';
+  setTimeout(() => { btn.textContent = '📋 Copiar mensagem'; }, 1500);
 }
 
 function showView(v) {
@@ -2020,9 +2171,30 @@ function showView(v) {
   if (v === 'insights') renderInsights();
 }
 
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePCM(); });
+
 initAllDl();
 renderRules();
 renderSeRows();
 </script>
+
+<!-- ══ MODAL PCM WHATSAPP ═══════════════════════════════════════════════════ -->
+<div id="pcm-modal" class="pcm-modal-overlay" onclick="if(event.target===this)closePCM()">
+  <div class="pcm-modal-panel">
+    <div class="modal-header">
+      <div>
+        <h2 class="modal-title">PCM — WhatsApp</h2>
+        <p class="modal-sub">Revise a mensagem e copie para enviar</p>
+      </div>
+      <button class="modal-close" onclick="closePCM()">×</button>
+    </div>
+    <textarea id="pcm-message" readonly></textarea>
+    <div style="display:flex;gap:10px;padding:14px 20px 20px">
+      <button class="btn-whatsapp" style="margin-left:0" onclick="copyPCM(this)">&#128203; Copiar mensagem</button>
+      <button class="btn-ghost" onclick="closePCM()">Fechar</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
