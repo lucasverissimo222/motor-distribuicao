@@ -692,6 +692,98 @@
 
     .btn-remove-cond:hover { background: #FEE2E2; }
 
+    .btn-edit {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 1px solid #BFDBFE;
+      background: #EFF6FF;
+      color: #1D4ED8;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+      transition: background .13s, transform .1s;
+    }
+    .btn-edit:hover { background: #DBEAFE; transform: scale(1.1); }
+
+    .badge-e {
+      display: inline-flex; align-items: center;
+      padding: 2px 8px; border-radius: 5px;
+      background: #DBEAFE; color: #1E3A5F;
+      font-size: 10.5px; font-weight: 700; flex-shrink: 0;
+    }
+    .badge-ou {
+      display: inline-flex; align-items: center;
+      padding: 2px 8px; border-radius: 5px;
+      background: #EDE9FE; color: #4C1D95;
+      font-size: 10.5px; font-weight: 700; flex-shrink: 0;
+    }
+
+    .se-op-group {
+      display: none;
+      border: 1.5px solid var(--se-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .se-op-btn {
+      height: 36px; padding: 0 18px;
+      border: none; background: transparent;
+      color: var(--orange-dark);
+      font-size: 13px; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+      transition: background .13s;
+    }
+    .se-op-btn + .se-op-btn { border-left: 1.5px solid var(--se-border); }
+    .se-op-btn.selected { background: var(--orange); color: #fff; }
+
+    .btn-cancel-edit {
+      height: 40px; padding: 0 14px; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      background: transparent; color: var(--danger);
+      border: 1.5px solid #FECACA; font-family: inherit;
+      transition: background .13s; display: none;
+    }
+    .btn-cancel-edit:hover { background: #FEF2F2; }
+
+    .check-group {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      height: 40px;
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      font-size: 13.5px;
+      color: var(--text);
+      user-select: none;
+      font-weight: 500;
+    }
+    .check-item input[type="checkbox"] { display: none; }
+    .check-box {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border-h);
+      border-radius: 5px;
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, border-color .15s;
+      flex-shrink: 0;
+    }
+    .check-item input:checked + .check-box {
+      background: var(--orange);
+      border-color: var(--orange);
+    }
+    .check-item input:checked + .check-box::after {
+      content: '';
+      width: 5px; height: 9px;
+      border: 2px solid #fff;
+      border-top: none; border-left: none;
+      transform: rotate(45deg) translateY(-1px);
+    }
+    .check-group-err .check-box { border-color: var(--danger) !important; }
+
     /* ──────────────────────────────────── MODAL */
     .modal-overlay {
       position: fixed;
@@ -885,6 +977,21 @@
           <label>Plataforma <span style="font-weight:400;color:var(--muted);font-size:9.5px">(opcional)</span></label>
           <input id="sel-plataforma" type="number" list="dl-plataforma" placeholder="Todas" autocomplete="off" style="min-width:150px" />
         </div>
+        <div class="field">
+          <label>Destino <span style="color:var(--danger);font-size:10px;font-weight:700">*</span></label>
+          <div class="check-group" id="chk-group">
+            <label class="check-item">
+              <input type="checkbox" id="chk-lead" onchange="onDestinoChange()" checked />
+              <span class="check-box"></span>
+              Lead
+            </label>
+            <label class="check-item">
+              <input type="checkbox" id="chk-oferta" onchange="onDestinoChange()" checked />
+              <span class="check-box"></span>
+              Oferta
+            </label>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -930,10 +1037,6 @@
           <input id="f-coordenada" type="number" list="dl-coordenada" autocomplete="off" />
         </div>
         <div class="field">
-          <label>Funcional</label>
-          <input id="f-funcional" type="text" list="dl-funcional" autocomplete="off" maxlength="9" />
-        </div>
-        <div class="field">
           <label>Carteira</label>
           <input id="f-carteira" type="text" list="dl-carteira" autocomplete="off" />
         </div>
@@ -949,6 +1052,7 @@
 
       <div class="form-footer">
         <button class="btn-ghost" onclick="clearCriteria()">Limpar campos</button>
+        <button id="btn-cancel-edit" class="btn-cancel-edit" onclick="cancelEdit()">Cancelar edição</button>
         <button id="btn-add" class="btn-circle" disabled title="Adicionar regra" onclick="addRule()">+</button>
       </div>
 
@@ -989,7 +1093,13 @@
                 <input id="se-produto" type="text" autocomplete="off" />
               </div>
             </div>
-            <button class="btn-se-add" onclick="addCondition()">Adicionar SE</button>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <div class="se-op-group" id="se-op-group">
+                <button class="se-op-btn selected" id="op-e" onclick="selectOp('E')">E</button>
+                <button class="se-op-btn" id="op-ou" onclick="selectOp('OU')">OU</button>
+              </div>
+              <button class="btn-se-add" onclick="addCondition()">Adicionar condição</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1010,13 +1120,13 @@
               <th>Ator</th>
               <th>Modelo</th>
               <th>Plataforma</th>
+              <th>Destino</th>
               <th>Dineg</th>
               <th>Região</th>
               <th>Regional</th>
               <th>Plataforma</th>
               <th>Coordenadora</th>
               <th>Coordenada</th>
-              <th>Funcional</th>
               <th>Carteira</th>
               <th>Produto</th>
               <th>Segmento</th>
@@ -1069,9 +1179,11 @@ const BASE_DINEG = (() => {
   }));
 })();
 
+const MODELOS_LIST = ['IAD','FISICA','IUD','SD','SDEMP','CONECTA'];
 const BASE_COORD = Array.from({length:30}, (_, i) => ({
   coordenadora: 7001 + i,
-  coordenada:   8001 + (i * 7 % 90)
+  coordenada:   8001 + (i * 7 % 90),
+  modelo:       MODELOS_LIST[i % MODELOS_LIST.length]
 }));
 
 const BASE_FUNC = Array.from({length:200}, (_, i) => {
@@ -1162,8 +1274,8 @@ const BASES = {
   coord: {
     title: 'Base Coordenadora',
     sub:   '30 registros · fonte: Dynamics 365',
-    cols:  ['#', 'Coordenadora', 'Coordenada'],
-    rows:  () => BASE_COORD.map((r,i) => [i+1, r.coordenadora, r.coordenada])
+    cols:  ['#', 'Coordenadora', 'Coordenada', 'Modelo'],
+    rows:  () => BASE_COORD.map((r,i) => [i+1, r.coordenadora, r.coordenada, r.modelo])
   },
   func: {
     title: 'Base Funcional',
@@ -1217,17 +1329,17 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBase();
 // ─── RULES ────────────────────────────────────────────────────────────────────
 
 let rules = [
-  { ator:'Iclientes', modelo:'IAD',     plat_canal:'',     dineg:'10', regiao:'1',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'',          carteira:'',        produto:'',                   segmento:'', conditions:[{ funcionais:['111222333','444555666','777888999','222333444'], carteira:'02_6001', plataforma:'', produto:'' }] },
-  { ator:'ION',       modelo:'FISICA',  plat_canal:'6024', dineg:'',   regiao:'',   regional:'1002', plataforma:'',     coordenadora:'7003', coordenada:'',     funcional:'',          carteira:'',        produto:'Conta Corrente',     segmento:'3', conditions:[] },
-  { ator:'GM',        modelo:'IUD',     plat_canal:'',     dineg:'25', regiao:'',   regional:'',     plataforma:'6005', coordenadora:'',     coordenada:'',     funcional:'555666777', carteira:'01_6005', produto:'',                   segmento:'',  conditions:[] },
-  { ator:'Central',   modelo:'SD',      plat_canal:'',     dineg:'',   regiao:'4',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'',          carteira:'',        produto:'LCI',                segmento:'4', conditions:[] },
-  { ator:'Iclientes', modelo:'SDEMP',   plat_canal:'6047', dineg:'42', regiao:'5',  regional:'5001', plataforma:'',     coordenadora:'7008', coordenada:'8012', funcional:'',          carteira:'',        produto:'',                   segmento:'5', conditions:[] },
-  { ator:'ION',       modelo:'CONECTA', plat_canal:'',     dineg:'',   regiao:'',   regional:'',     plataforma:'6011', coordenadora:'7011', coordenada:'',     funcional:'',          carteira:'01_6011', produto:'',                   segmento:'',  conditions:[] },
-  { ator:'GM',        modelo:'IAD',     plat_canal:'',     dineg:'63', regiao:'',   regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'300400500', carteira:'',        produto:'CDB',                segmento:'3', conditions:[] },
-  { ator:'Central',   modelo:'FISICA',  plat_canal:'',     dineg:'88', regiao:'9',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     funcional:'',          carteira:'',        produto:'Previdência Privada', segmento:'2', conditions:[] },
+  { ator:'Iclientes', modelo:'IAD',     plat_canal:'',     destino:'Lead · Oferta', dineg:'10', regiao:'1',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     carteira:'',        produto:'',                   segmento:'', conditions:[{ operator:'SE', funcionais:['111222333','444555666','777888999','222333444'], carteira:'02_6001', plataforma:'', produto:'' }] },
+  { ator:'ION',       modelo:'FISICA',  plat_canal:'6024', destino:'Oferta',        dineg:'',   regiao:'',   regional:'1002', plataforma:'',     coordenadora:'7003', coordenada:'',     carteira:'',        produto:'Conta Corrente',     segmento:'3', conditions:[] },
+  { ator:'GM',        modelo:'IUD',     plat_canal:'',     destino:'Lead',          dineg:'25', regiao:'',   regional:'',     plataforma:'6005', coordenadora:'',     coordenada:'',     carteira:'01_6005', produto:'',                   segmento:'',  conditions:[] },
+  { ator:'Central',   modelo:'SD',      plat_canal:'',     destino:'Lead · Oferta', dineg:'',   regiao:'4',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     carteira:'',        produto:'LCI',                segmento:'4', conditions:[] },
+  { ator:'Iclientes', modelo:'SDEMP',   plat_canal:'6047', destino:'Oferta',        dineg:'42', regiao:'5',  regional:'5001', plataforma:'',     coordenadora:'7008', coordenada:'8012', carteira:'',        produto:'',                   segmento:'5', conditions:[] },
+  { ator:'ION',       modelo:'CONECTA', plat_canal:'',     destino:'Lead',          dineg:'',   regiao:'',   regional:'',     plataforma:'6011', coordenadora:'7011', coordenada:'',     carteira:'01_6011', produto:'',                   segmento:'',  conditions:[] },
+  { ator:'GM',        modelo:'IAD',     plat_canal:'',     destino:'Lead · Oferta', dineg:'63', regiao:'',   regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     carteira:'',        produto:'CDB',                segmento:'3', conditions:[] },
+  { ator:'Central',   modelo:'FISICA',  plat_canal:'',     destino:'Lead · Oferta', dineg:'88', regiao:'9',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     carteira:'',        produto:'Previdência Privada', segmento:'2', conditions:[] },
 ];
 
-const KEYS = ['dineg','regiao','regional','plataforma','coordenadora','coordenada','funcional','carteira','produto','segmento'];
+const KEYS = ['dineg','regiao','regional','plataforma','coordenadora','coordenada','carteira','produto','segmento'];
 
 function cell(v) {
   return v ? `<td>${v}</td>` : `<td class="empty-cell">—</td>`;
@@ -1251,20 +1363,29 @@ function renderRules() {
         <td><span class="tag tag-orange">${r.ator}</span></td>
         <td><span class="tag tag-green">${r.modelo}</span></td>
         ${cell(r.plat_canal)}
+        <td><span class="tag tag-indigo" style="font-size:11px">${r.destino || '—'}</span></td>
         ${cell(r.dineg)}${cell(r.regiao)}${cell(r.regional)}${cell(r.plataforma)}
-        ${cell(r.coordenadora)}${cell(r.coordenada)}${cell(r.funcional)}
+        ${cell(r.coordenadora)}${cell(r.coordenada)}
         ${cell(r.carteira)}${cell(r.produto)}${cell(r.segmento)}
-        <td><button class="btn-remove" onclick="removeRule(${i})" title="Remover">−</button></td>
+        <td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center;align-items:center"><button class="btn-edit" onclick="editRule(${i})" title="Editar">✎</button><button class="btn-remove" onclick="removeRule(${i})" title="Remover">−</button></div></td>
       </tr>`;
 
-    (r.conditions || []).forEach((cond, ci) => {
+    const conds = r.conditions || [];
+    conds.forEach((cond, ci) => {
+      const isLast = ci === conds.length - 1;
       const chips = cond.funcionais.map(f => `<span class="se-func-chip">${f}</span>`).join(' ');
       const parts = [];
       if (cond.carteira)   parts.push(`carteira: <strong>${cond.carteira}</strong>`);
       if (cond.plataforma) parts.push(`plataforma: <strong>${cond.plataforma}</strong>`);
       if (cond.produto)    parts.push(`produto: <strong>${cond.produto}</strong>`);
       const resultStr = parts.join(' · ') || '—';
-      const negStr    = cond.carteira
+      const op = cond.operator || 'SE';
+      const opBadge = op === 'OU'
+        ? `<span class="badge-ou">OU</span>`
+        : op === 'E'
+          ? `<span class="badge-e">E</span>`
+          : `<span class="badge-se">SE</span>`;
+      const negStr = cond.carteira
         ? `demais colaboradores — carteira ${cond.carteira} não visível`
         : `demais colaboradores — condição padrão aplicada`;
 
@@ -1272,13 +1393,16 @@ function renderRules() {
         <tr class="row-se">
           <td class="indent-arrow">↳</td>
           <td colspan="13"><div class="se-condition-text">
-            <span class="badge-se">SE</span>
+            ${opBadge}
             funcional ∈ { ${chips} }
             <span class="se-arrow">→</span>
             <span class="se-result">${resultStr}</span>
           </div></td>
           <td><button class="btn-remove-cond" onclick="removeCondition(${i},${ci})" title="Remover exceção">−</button></td>
-        </tr>
+        </tr>`;
+
+      if (isLast) {
+        html += `
         <tr class="row-senao">
           <td class="indent-arrow">↳</td>
           <td colspan="13"><div class="se-condition-text">
@@ -1287,6 +1411,7 @@ function renderRules() {
           </div></td>
           <td></td>
         </tr>`;
+      }
     });
   });
 
@@ -1294,23 +1419,85 @@ function renderRules() {
   updateSEIdSelect();
 }
 
+let _editIndex  = -1;
+let _seOperator = 'E';
+
 function removeRule(i) { rules.splice(i, 1); renderRules(); }
 function removeCondition(ri, ci) { rules[ri].conditions.splice(ci, 1); renderRules(); }
 
+function editRule(i) {
+  const r = rules[i];
+  document.getElementById('sel-ator').value    = r.ator;
+  document.getElementById('sel-modelo').disabled = false;
+  document.getElementById('sel-modelo').value  = r.modelo;
+  document.getElementById('sel-plataforma').value = r.plat_canal || '';
+  KEYS.forEach(k => { document.getElementById('f-' + k).value = r[k] || ''; });
+  document.getElementById('chk-lead').checked   = !r.destino || r.destino.includes('Lead');
+  document.getElementById('chk-oferta').checked = !r.destino || r.destino.includes('Oferta');
+  _editIndex = i;
+  const btn = document.getElementById('btn-add');
+  btn.disabled = false;
+  btn.textContent = '✎';
+  btn.style.background = '#1D4ED8';
+  document.getElementById('btn-cancel-edit').style.display = '';
+  document.querySelector('.content .card:nth-child(2)').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function cancelEdit() {
+  _editIndex = -1;
+  const btn = document.getElementById('btn-add');
+  btn.textContent = '+';
+  btn.style.background = '';
+  btn.disabled = !(document.getElementById('sel-ator').value && document.getElementById('sel-modelo').value);
+  document.getElementById('btn-cancel-edit').style.display = 'none';
+  clearCriteria();
+}
+
+function _getDestino() {
+  const lead   = document.getElementById('chk-lead').checked;
+  const oferta = document.getElementById('chk-oferta').checked;
+  if (lead && oferta) return 'Lead · Oferta';
+  if (lead)   return 'Lead';
+  if (oferta) return 'Oferta';
+  return '';
+}
+
+function onDestinoChange() {
+  const valid = document.getElementById('chk-lead').checked || document.getElementById('chk-oferta').checked;
+  document.getElementById('chk-group').classList.toggle('check-group-err', !valid);
+  const btn = document.getElementById('btn-add');
+  btn.disabled = !(document.getElementById('sel-ator').value && document.getElementById('sel-modelo').value && valid);
+}
+
 function addRule() {
-  const r = {
-    ator:       document.getElementById('sel-ator').value,
-    modelo:     document.getElementById('sel-modelo').value,
-    plat_canal: document.getElementById('sel-plataforma').value.trim(),
-    conditions: []
-  };
-  KEYS.forEach(k => { r[k] = document.getElementById('f-' + k).value.trim(); });
-  rules.push(r);
+  const lead   = document.getElementById('chk-lead').checked;
+  const oferta = document.getElementById('chk-oferta').checked;
+  if (!lead && !oferta) { document.getElementById('chk-group').classList.add('check-group-err'); return; }
+  const ator       = document.getElementById('sel-ator').value;
+  const modelo     = document.getElementById('sel-modelo').value;
+  const plat_canal = document.getElementById('sel-plataforma').value.trim();
+  const destino    = _getDestino();
+  const fields = {};
+  KEYS.forEach(k => { fields[k] = document.getElementById('f-' + k).value.trim(); });
+
+  if (_editIndex >= 0) {
+    Object.assign(rules[_editIndex], { ator, modelo, plat_canal, destino, ...fields });
+    _editIndex = -1;
+    document.getElementById('btn-cancel-edit').style.display = 'none';
+  } else {
+    rules.push({ ator, modelo, plat_canal, destino, ...fields, conditions: [] });
+  }
   renderRules();
   const btn = document.getElementById('btn-add');
   btn.textContent = '✓';
   btn.style.background = 'var(--success)';
   setTimeout(() => { btn.textContent = '+'; btn.style.background = ''; }, 1100);
+}
+
+function selectOp(op) {
+  _seOperator = op;
+  document.getElementById('op-e').classList.toggle('selected', op === 'E');
+  document.getElementById('op-ou').classList.toggle('selected', op === 'OU');
 }
 
 function clearCriteria() {
@@ -1349,24 +1536,41 @@ function addCondition() {
   }
   const ri = parseInt(idVal) - 1;
   if (!rules[ri].conditions) rules[ri].conditions = [];
-  rules[ri].conditions.push({ funcionais: funcText.split(',').map(f => f.trim()).filter(Boolean), carteira, plataforma, produto });
+  const operator = rules[ri].conditions.length === 0 ? 'SE' : _seOperator;
+  rules[ri].conditions.push({ operator, funcionais: funcText.split(',').map(f => f.trim()).filter(Boolean), carteira, plataforma, produto });
   renderRules();
   ['se-funcional','se-carteira','se-plataforma','se-produto'].forEach(id => { document.getElementById(id).value = ''; });
+  _updateOpGroup();
+}
+
+function _updateOpGroup() {
+  const sel = document.getElementById('se-id');
+  const idx = parseInt(sel.value) - 1;
+  const show = sel.value && rules[idx] && (rules[idx].conditions||[]).length > 0;
+  document.getElementById('se-op-group').style.display = show ? 'flex' : 'none';
 }
 
 const selAtor   = document.getElementById('sel-ator');
 const selModelo = document.getElementById('sel-modelo');
 const btnAdd    = document.getElementById('btn-add');
 
+function _canAdd() {
+  const lead   = document.getElementById('chk-lead').checked;
+  const oferta = document.getElementById('chk-oferta').checked;
+  return !!(selAtor.value && selModelo.value && (lead || oferta));
+}
+
 selAtor.addEventListener('change', () => {
   selModelo.disabled = !selAtor.value;
   if (!selAtor.value) selModelo.value = '';
-  btnAdd.disabled = !(selAtor.value && selModelo.value);
+  btnAdd.disabled = !_canAdd();
 });
 
 selModelo.addEventListener('change', () => {
-  btnAdd.disabled = !(selAtor.value && selModelo.value);
+  btnAdd.disabled = !_canAdd();
 });
+
+document.getElementById('se-id').addEventListener('change', _updateOpGroup);
 
 initAllDl();
 renderRules();
