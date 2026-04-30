@@ -735,6 +735,38 @@
     }
     .se-op-btn + .se-op-btn { border-left: 1.5px solid var(--se-border); }
     .se-op-btn.selected { background: var(--orange); color: #fff; }
+    .se-op-btn:hover { background: var(--orange-lt); }
+
+    .se-row {
+      padding: 12px 14px;
+      background: rgba(255,255,255,.65);
+      border: 1px solid var(--se-border);
+      border-radius: 8px;
+    }
+    .se-row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .se-row-grid {
+      display: grid;
+      grid-template-columns: 1fr 148px 148px 1fr;
+      gap: 12px 14px;
+    }
+    @media (max-width:900px) { .se-row-grid { grid-template-columns: 1fr 1fr; } }
+    .se-row-sep {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+    }
+    .se-row-sep::before, .se-row-sep::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--se-border);
+    }
 
     .btn-cancel-edit {
       height: 40px; padding: 0 14px; border-radius: 8px;
@@ -1068,37 +1100,20 @@
         <div id="se-panel" style="display:none">
           <div style="height:14px"></div>
           <div class="se-panel">
-            <p class="se-panel-note">Selecione a regra de referência e informe quais funcionais terão comportamento diferente dos demais.</p>
-            <div class="se-grid">
-              <div class="field">
-                <label>ID da Regra</label>
-                <select id="se-id">
-                  <option value="">Selecione...</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Funcionais (separados por vírgula)</label>
-                <input id="se-funcional" type="text" placeholder="111222333, 444555666..." autocomplete="off" />
-              </div>
-              <div class="field">
-                <label>Carteira</label>
-                <input id="se-carteira" type="text" autocomplete="off" />
-              </div>
-              <div class="field">
-                <label>Plataforma</label>
-                <input id="se-plataforma" type="number" autocomplete="off" />
-              </div>
-              <div class="field">
-                <label>Produto</label>
-                <input id="se-produto" type="text" autocomplete="off" />
-              </div>
+            <p class="se-panel-note">Selecione a regra e preencha as condições. Clique em <strong>+ E</strong> ou <strong>+ OU</strong> para encadear mais condições antes de confirmar.</p>
+            <div class="field" style="max-width:220px;margin-bottom:16px">
+              <label>ID da Regra</label>
+              <select id="se-id">
+                <option value="">Selecione a regra...</option>
+              </select>
             </div>
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <div class="se-op-group" id="se-op-group">
-                <button class="se-op-btn selected" id="op-e" onclick="selectOp('E')">E</button>
-                <button class="se-op-btn" id="op-ou" onclick="selectOp('OU')">OU</button>
+            <div id="se-rows-container"></div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap">
+              <div class="se-op-group" style="display:flex">
+                <button class="se-op-btn" onclick="addSeRow('E')">+ E</button>
+                <button class="se-op-btn" onclick="addSeRow('OU')">+ OU</button>
               </div>
-              <button class="btn-se-add" onclick="addCondition()">Adicionar condição</button>
+              <button class="btn-se-add" onclick="addCondition()">Confirmar condições</button>
             </div>
           </div>
         </div>
@@ -1419,8 +1434,8 @@ function renderRules() {
   updateSEIdSelect();
 }
 
-let _editIndex  = -1;
-let _seOperator = 'E';
+let _editIndex = -1;
+let _seRows    = [{ op:'SE', funcionais:'', carteira:'', plataforma:'', produto:'' }];
 
 function removeRule(i) { rules.splice(i, 1); renderRules(); }
 function removeCondition(ri, ci) { rules[ri].conditions.splice(ci, 1); renderRules(); }
@@ -1494,10 +1509,73 @@ function addRule() {
   setTimeout(() => { btn.textContent = '+'; btn.style.background = ''; }, 1100);
 }
 
-function selectOp(op) {
-  _seOperator = op;
-  document.getElementById('op-e').classList.toggle('selected', op === 'E');
-  document.getElementById('op-ou').classList.toggle('selected', op === 'OU');
+function renderSeRows() {
+  const c = document.getElementById('se-rows-container');
+  if (!c) return;
+  let html = '';
+  _seRows.forEach((row, i) => {
+    if (i > 0) {
+      const cls = row.op === 'OU' ? 'badge-ou' : 'badge-e';
+      html += `<div class="se-row-sep"><span class="${cls}">${row.op}</span></div>`;
+    }
+    html += `
+      <div class="se-row">
+        <div class="se-row-header">
+          ${i === 0 ? '<span class="badge-se">SE</span>' : '<span></span>'}
+          ${_seRows.length > 1
+            ? `<button class="btn-remove-cond" onclick="removeSeRow(${i})" title="Remover">−</button>`
+            : '<span></span>'}
+        </div>
+        <div class="se-row-grid">
+          <div class="field">
+            <label>Funcionais (sep. por vírgula)</label>
+            <input type="text" id="se-func-${i}" placeholder="111222333, 444..." autocomplete="off" value="${row.funcionais}" />
+          </div>
+          <div class="field">
+            <label>Carteira</label>
+            <input type="text" id="se-cart-${i}" autocomplete="off" value="${row.carteira}" />
+          </div>
+          <div class="field">
+            <label>Plataforma</label>
+            <input type="number" id="se-plat-${i}" autocomplete="off" value="${row.plataforma}" />
+          </div>
+          <div class="field">
+            <label>Produto</label>
+            <input type="text" id="se-prod-${i}" autocomplete="off" value="${row.produto}" />
+          </div>
+        </div>
+      </div>`;
+  });
+  c.innerHTML = html;
+}
+
+function _syncSeRows() {
+  _seRows.forEach((row, i) => {
+    const f  = document.getElementById(`se-func-${i}`);
+    const ca = document.getElementById(`se-cart-${i}`);
+    const pl = document.getElementById(`se-plat-${i}`);
+    const pr = document.getElementById(`se-prod-${i}`);
+    if (f)  row.funcionais  = f.value;
+    if (ca) row.carteira    = ca.value;
+    if (pl) row.plataforma  = pl.value;
+    if (pr) row.produto     = pr.value;
+  });
+}
+
+function addSeRow(op) {
+  _syncSeRows();
+  _seRows.push({ op, funcionais:'', carteira:'', plataforma:'', produto:'' });
+  renderSeRows();
+  setTimeout(() => {
+    const inp = document.getElementById(`se-func-${_seRows.length - 1}`);
+    if (inp) inp.focus();
+  }, 40);
+}
+
+function removeSeRow(idx) {
+  _syncSeRows();
+  _seRows.splice(idx, 1);
+  renderSeRows();
 }
 
 function clearCriteria() {
@@ -1511,7 +1589,7 @@ function toggleSE() {
   const open  = panel.style.display !== 'none';
   panel.style.display = open ? 'none' : 'block';
   caret.textContent   = open ? '▶' : '▼';
-  if (!open) updateSEIdSelect();
+  if (!open) { updateSEIdSelect(); renderSeRows(); }
 }
 
 function updateSEIdSelect() {
@@ -1525,29 +1603,30 @@ function updateSEIdSelect() {
 function addCondition() {
   const idVal = document.getElementById('se-id').value;
   if (!idVal) { alert('Selecione a regra de referência.'); return; }
-  const funcText = document.getElementById('se-funcional').value.trim();
-  if (!funcText) { alert('Informe ao menos um funcional.'); return; }
-  const carteira   = document.getElementById('se-carteira').value.trim();
-  const plataforma = document.getElementById('se-plataforma').value.trim();
-  const produto    = document.getElementById('se-produto').value.trim();
-  if (!carteira && !plataforma && !produto) {
-    alert('Informe ao menos um resultado (carteira, plataforma ou produto).');
-    return;
+  _syncSeRows();
+  if (!_seRows[0].funcionais.trim()) { alert('Informe ao menos um funcional na primeira condição.'); return; }
+  for (let i = 0; i < _seRows.length; i++) {
+    const row = _seRows[i];
+    if (!row.carteira && !row.plataforma && !row.produto) {
+      alert(`Condição ${i + 1}: informe ao menos um resultado (carteira, plataforma ou produto).`);
+      return;
+    }
   }
   const ri = parseInt(idVal) - 1;
   if (!rules[ri].conditions) rules[ri].conditions = [];
-  const operator = rules[ri].conditions.length === 0 ? 'SE' : _seOperator;
-  rules[ri].conditions.push({ operator, funcionais: funcText.split(',').map(f => f.trim()).filter(Boolean), carteira, plataforma, produto });
+  _seRows.forEach(row => {
+    const isFirst = rules[ri].conditions.length === 0;
+    rules[ri].conditions.push({
+      operator:   isFirst ? 'SE' : row.op,
+      funcionais: row.funcionais.split(',').map(f => f.trim()).filter(Boolean),
+      carteira:   row.carteira,
+      plataforma: row.plataforma,
+      produto:    row.produto
+    });
+  });
   renderRules();
-  ['se-funcional','se-carteira','se-plataforma','se-produto'].forEach(id => { document.getElementById(id).value = ''; });
-  _updateOpGroup();
-}
-
-function _updateOpGroup() {
-  const sel = document.getElementById('se-id');
-  const idx = parseInt(sel.value) - 1;
-  const show = sel.value && rules[idx] && (rules[idx].conditions||[]).length > 0;
-  document.getElementById('se-op-group').style.display = show ? 'flex' : 'none';
+  _seRows = [{ op:'SE', funcionais:'', carteira:'', plataforma:'', produto:'' }];
+  renderSeRows();
 }
 
 const selAtor   = document.getElementById('sel-ator');
@@ -1570,10 +1649,9 @@ selModelo.addEventListener('change', () => {
   btnAdd.disabled = !_canAdd();
 });
 
-document.getElementById('se-id').addEventListener('change', _updateOpGroup);
-
 initAllDl();
 renderRules();
+renderSeRows();
 </script>
 </body>
 </html>
