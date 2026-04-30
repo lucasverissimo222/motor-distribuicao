@@ -701,6 +701,7 @@
         padding: 9px 12px;
         white-space: nowrap;
         color: var(--text);
+        vertical-align: middle;
       }
 
       tbody td:last-child {
@@ -2146,7 +2147,7 @@
         <div class="i-card">
           <div class="i-card-title">
             <span class="badge" style="background: var(--danger)">!</span>
-            Automação leve — Leads aguardando (5h–24h · Fila 2)
+            Leads com risco — aguardando atendimento (5h–24h · Fila 2)
             <span class="count-pill" id="q3-count">—</span>
           </div>
           <div style="overflow-x: auto">
@@ -2164,7 +2165,7 @@
                   <th>Horas aguardando</th>
                   <th style="text-align: right">Nº de CPFs</th>
                   <th>Carteira predominante</th>
-                  <th>Janela</th>
+                  <th style="text-align:right">Leads ativos</th>
                 </tr>
               </thead>
               <tbody id="leads-24h-body"></tbody>
@@ -2369,7 +2370,8 @@
             'Seg.',
             'Fila',
             'Posição',
-            'Hrs. fila'
+            'Hrs. fila',
+            'Ativo'
           ],
           rows: () =>
             BASE_LEADS.map((r, i) => [
@@ -2381,7 +2383,8 @@
               r.segmento,
               'Fila ' + r.fila,
               '#' + r.prioridade,
-              r.horasNaFila + 'h'
+              r.horasNaFila + 'h',
+              r.ativo
             ])
         }
       }
@@ -3004,6 +3007,8 @@
             prioridade: 1 + ((i * 13) % 50),
             valor: (5 + ((i * 17) % 995)) * 1000,
             nProdutos: 1 + ((i * 7) % 8),
+            pa: (50 + (i * 31 % 950)) * 1000,
+            ativo: (i * 7 % 5) !== 0 ? 1 : 0,
             horasNaFila: 1 + ((i * 11) % 72),
             dataCriacao: (() => {
               const h = 1 + ((i * 11) % 72)
@@ -3046,18 +3051,24 @@
       })()
 
       const BEST_CLIENTS = [...BASE_LEADS]
-        .sort((a, b) => b.nProdutos - a.nProdutos || b.valor - a.valor)
+        .sort((a, b) => b.pa - a.pa)
         .slice(0, 15)
 
       const LEADS_HOURS_COUNT = (() => {
         const CARTERIAS = ['01_6001','01_6023','01_6045','01_6067','01_6089','01_6111','01_6133','01_6155'];
+        const activeByCarteira = {};
+        BASE_LEADS.filter(r => r.ativo === 1).forEach(r => {
+          activeByCarteira[r.carteira] = (activeByCarteira[r.carteira] || 0) + 1;
+        });
         const result = [];
         for (let h = 5; h <= 24; h++) {
+          const count = 800 + (h * 317 % 9200);
+          const cart  = CARTERIAS[(h * 3) % CARTERIAS.length];
           result.push({
-            horas:    h,
-            count:    800 + (h * 317 % 9200),
-            carteira: CARTERIAS[(h * 3) % CARTERIAS.length],
-            janela:   'Automação leve (2h–24h)'
+            horas:       h,
+            count,
+            carteira:    cart,
+            leadsAtivos: count + 500 + (h * 251 % 5000)
           });
         }
         return result;
@@ -3081,7 +3092,7 @@
       <td><span class="tag tag-indigo" style="font-size:10px;padding:2px 6px">${f.carteira}</span></td>
       <td>${f.produtoPredominante}</td>
       <td><span class="tag tag-orange" style="font-size:10px;padding:2px 6px">${f.maisVendido30d}</span></td>
-      <td style="text-align:center"><span class="tag tag-green" style="font-size:10px;padding:2px 6px">${f.conversao}</span></td>
+      <td style="text-align:center"><span class="tag tag-green" style="font-size:10px;padding:2px 6px;white-space:nowrap">${f.conversao}</span></td>
       <td style="text-align:center">${f.leadsAtivos}</td>
     </tr>`
         ).join('')
@@ -3091,9 +3102,7 @@
         document.getElementById('q2-count').textContent = BEST_CLIENTS.length
         document.getElementById('client-prio-body').innerHTML =
           BEST_CLIENTS.map(
-            (c, i) => {
-              const preAprov = (i * 7 % 3) !== 0;
-              return `
+            (c, i) => `
     <tr>
       <td style="text-align:center">
         <input type="checkbox" class="row-check check-q2" data-cpf="${c.cpf}" data-i="${i}" onchange="updateSelCount()" />
@@ -3101,18 +3110,12 @@
       <td style="font-family:monospace;font-size:11px">${c.cpf}</td>
       <td style="text-align:center"><strong>${c.nProdutos}</strong></td>
       <td style="text-align:right">${c.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}</td>
-      <td style="text-align:center">
-        <span style="display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;
-          background:${preAprov?'#DCFCE7':'#FEE2E2'};color:${preAprov?'#15803D':'#DC2626'}">
-          ${preAprov?'Sim':'Não'}
-        </span>
-      </td>
+      <td style="text-align:right;font-weight:700;color:var(--success)">${c.pa.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}</td>
       <td style="text-align:center">
         <span class="tag ${c.fila === 1 ? 'tag-orange' : 'tag-indigo'}" style="font-size:10px;padding:2px 7px" id="q2-fila-${i}">Fila ${c.fila}</span>
       </td>
       <td style="text-align:center;color:var(--muted)" id="q2-pos-${i}">#${c.prioridade}</td>
-    </tr>`;
-            }
+    </tr>`
           ).join('')
       }
 
@@ -3130,7 +3133,7 @@
       </td>
       <td style="text-align:right;font-weight:700">${r.count.toLocaleString('pt-BR')}</td>
       <td><span class="tag tag-indigo" style="font-size:10px;padding:2px 6px">${r.carteira}</span></td>
-      <td style="font-size:11px;color:var(--muted)">${r.janela}</td>
+      <td style="text-align:right;font-weight:600;color:var(--success)">${r.leadsAtivos.toLocaleString('pt-BR')}</td>
     </tr>`
         ).join('')
       }
