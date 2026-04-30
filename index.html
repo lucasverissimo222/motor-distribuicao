@@ -1,1698 +1,2612 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Motor de Distribuição — Portal de Parametrização</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --orange:        #F97316;
-      --orange-h:      #EA6C0A;
-      --orange-lt:     #FFF7ED;
-      --orange-mid:    #FED7AA;
-      --orange-dark:   #C2410C;
-
-      --sidebar-w:     240px;
-      --sidebar-bg:    #FFFFFF;
-      --sidebar-border:#F0E8DF;
-      --sidebar-text:  #6B7280;
-      --sidebar-text-h:#374151;
-      --sidebar-act-bg:#FFF7ED;
-      --sidebar-act:   #C2410C;
-
-      --bg:            #FDF8F3;
-      --surface:       #FFFFFF;
-      --border:        #EDE8E3;
-      --border-h:      #D6CFC8;
-      --text:          #1C1917;
-      --muted:         #78716C;
-      --radius:        10px;
-      --shadow:        0 1px 3px rgba(120,80,40,.06), 0 4px 14px rgba(120,80,40,.06);
-
-      --success:       #059669;
-      --danger:        #DC2626;
-      --tag-bg:        #EEF2FF;
-      --tag-text:      #4338CA;
-
-      --se-bg:         #FFFBF7;
-      --se-border:     #FDCFA4;
-    }
-
-    html, body { height: 100%; }
-    body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 14px;
-      display: flex;
-    }
-
-    /* ──────────────────────────────────── SIDEBAR */
-    .sidebar {
-      width: var(--sidebar-w);
-      flex-shrink: 0;
-      background: var(--sidebar-bg);
-      border-right: 1px solid var(--sidebar-border);
-      position: fixed;
-      top: 0; left: 0; bottom: 0;
-      display: flex;
-      flex-direction: column;
-      z-index: 100;
-    }
-
-    .sidebar-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 20px 18px 18px;
-      border-bottom: 1px solid var(--sidebar-border);
-    }
-
-    .brand-icon {
-      width: 38px; height: 38px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #F97316, #FDBA74);
-      display: flex; align-items: center; justify-content: center;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 900;
-      letter-spacing: -.5px;
-      flex-shrink: 0;
-      box-shadow: 0 3px 10px rgba(249,115,22,.25);
-    }
-
-    .brand-text strong {
-      display: block;
-      color: var(--text);
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1.25;
-    }
-
-    .brand-text span {
-      display: block;
-      color: var(--muted);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-    }
-
-    .sidebar-nav {
-      flex: 1;
-      padding: 14px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-      overflow-y: auto;
-    }
-
-    .nav-label {
-      font-size: 9.5px;
-      font-weight: 700;
-      color: #D1C5BC;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      padding: 14px 8px 5px;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 10px;
-      border-radius: 8px;
-      color: var(--sidebar-text);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background .13s, color .13s;
-      text-decoration: none;
-      user-select: none;
-    }
-
-    .nav-item::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: #E5DDD8;
-      flex-shrink: 0;
-      transition: background .15s, transform .2s, box-shadow .2s;
-    }
-
-    .nav-item:hover {
-      background: #FBF6F2;
-      color: var(--sidebar-text-h);
-    }
-
-    .nav-item:hover::before { background: #D6C8C0; }
-
-    .nav-item.active {
-      background: var(--sidebar-act-bg);
-      color: var(--sidebar-act);
-      font-weight: 600;
-    }
-
-    .nav-item.active::before {
-      background: var(--orange);
-      transform: scale(1.35);
-      box-shadow: 0 0 7px rgba(249,115,22,.45);
-    }
-
-    .nav-item-db::before {
-      background: #DBEAFE !important;
-    }
-    .nav-item-db:hover::before { background: #93C5FD !important; }
-
-    .sidebar-footer {
-      padding: 14px 16px;
-      border-top: 1px solid var(--sidebar-border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .user-avatar {
-      width: 34px; height: 34px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #F97316, #FDBA74);
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      box-shadow: 0 2px 8px rgba(249,115,22,.22);
-    }
-
-    .user-info strong {
-      display: block;
-      color: var(--text);
-      font-size: 12px;
-      font-weight: 600;
-      line-height: 1.3;
-    }
-
-    .user-info span {
-      display: block;
-      color: var(--muted);
-      font-size: 10.5px;
-    }
-
-    /* ──────────────────────────────────── TOPBAR */
-    .layout-main {
-      margin-left: var(--sidebar-w);
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    .topbar {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 28px;
-      height: 52px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      box-shadow: 0 1px 4px rgba(120,80,40,.05);
-    }
-
-    .breadcrumb {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .breadcrumb-sep { color: #D6C8C0; }
-
-    .breadcrumb-active {
-      color: var(--text);
-      font-weight: 600;
-    }
-
-    .env-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 11px;
-      border-radius: 99px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      font-size: 11.5px;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    .env-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--success);
-    }
-
-    /* ──────────────────────────────────── CONTENT */
-    .content {
-      padding: 28px;
-      flex: 1;
-    }
-
-    .page-head { margin-bottom: 22px; }
-
-    .page-head h1 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .page-head p {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    /* ──────────────────────────────────── CARDS */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 20px 24px;
-      margin-bottom: 18px;
-      max-width: 1360px;
-    }
-
-    .card-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      padding-bottom: 15px;
-      margin-bottom: 18px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .badge {
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      background: var(--orange);
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      box-shadow: 0 2px 7px rgba(249,115,22,.3);
-    }
-
-    .badge-green {
-      background: var(--success);
-      box-shadow: 0 2px 7px rgba(5,150,105,.25);
-    }
-
-    /* ──────────────────────────────────── FORM */
-    .selector-row {
-      display: flex;
-      gap: 14px;
-      align-items: flex-end;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .field label {
-      font-size: 10.5px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .06em;
-    }
-
-    select,
-    input[type="text"],
-    input[type="number"] {
-      height: 40px;
-      padding: 0 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-size: 14px;
-      color: var(--text);
-      background: var(--surface);
-      outline: none;
-      transition: border-color .15s, box-shadow .15s, background .15s;
-      font-family: inherit;
-    }
-
-    select {
-      min-width: 195px;
-      cursor: pointer;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='6' viewBox='0 0 11 6'%3E%3Cpath d='M1 1l4.5 4 4.5-4' stroke='%2378716C' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 32px;
-    }
-
-    input { width: 100%; }
-
-    select:hover:not(:disabled),
-    input:hover {
-      border-color: var(--border-h);
-    }
-
-    select:focus, input:focus {
-      border-color: var(--orange);
-      box-shadow: 0 0 0 3px rgba(249,115,22,.12);
-      background: #FFFCF9;
-    }
-
-    select:disabled {
-      background: #FAF6F2;
-      color: #A89E96;
-      cursor: not-allowed;
-      opacity: .75;
-    }
-
-    /* Buttons */
-    .btn-circle {
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      border: none;
-      background: var(--orange);
-      color: #fff;
-      font-size: 24px;
-      font-weight: 300;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: background .13s, transform .12s, box-shadow .15s;
-      line-height: 1;
-      box-shadow: 0 2px 8px rgba(249,115,22,.35);
-    }
-
-    .btn-circle:hover:not(:disabled) {
-      background: var(--orange-h);
-      transform: scale(1.08);
-      box-shadow: 0 4px 14px rgba(249,115,22,.4);
-    }
-
-    .btn-circle:active:not(:disabled) { transform: scale(.96); }
-
-    .btn-circle:disabled {
-      background: #E5DDD8;
-      box-shadow: none;
-      cursor: not-allowed;
-    }
-
-    .btn-remove {
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      border: 1px solid #FECACA;
-      background: #FEF2F2;
-      color: var(--danger);
-      font-size: 16px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      line-height: 1;
-      transition: background .13s, transform .1s;
-    }
-
-    .btn-remove:hover { background: #FEE2E2; transform: scale(1.1); }
-
-    .btn-ghost {
-      height: 38px;
-      padding: 0 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      background: transparent;
-      color: var(--muted);
-      border: 1.5px solid var(--border);
-      font-family: inherit;
-      transition: background .13s, border-color .13s;
-    }
-
-    .btn-ghost:hover { background: var(--bg); border-color: var(--border-h); }
-
-    /* Criteria grid */
-    .criteria-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 14px 16px;
-      margin-bottom: 16px;
-    }
-
-    @media (max-width: 1100px) { .criteria-grid { grid-template-columns: repeat(4,1fr); } }
-    @media (max-width:  900px) { .criteria-grid { grid-template-columns: repeat(3,1fr); } }
-    @media (max-width:  600px) { .criteria-grid { grid-template-columns: repeat(2,1fr); } }
-
-    .form-footer {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* ──────────────────────────────────── SE SECTION */
-    .se-section {
-      margin-top: 22px;
-      padding-top: 18px;
-      border-top: 1px dashed var(--border);
-    }
-
-    .se-toggle-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .btn-se-toggle {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--se-bg);
-      border: 1.5px solid var(--se-border);
-      border-radius: 8px;
-      padding: 6px 14px;
-      color: var(--orange-dark);
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background .13s;
-      user-select: none;
-    }
-
-    .btn-se-toggle:hover { background: #FFF0E0; }
-
-    .se-hint { font-size: 12px; color: var(--muted); }
-
-    .se-panel {
-      margin-top: 14px;
-      padding: 16px 18px;
-      background: var(--se-bg);
-      border: 1.5px solid var(--se-border);
-      border-radius: var(--radius);
-    }
-
-    .se-panel-note {
-      font-size: 12px;
-      color: #A16207;
-      margin-bottom: 14px;
-    }
-
-    .se-grid {
-      display: grid;
-      grid-template-columns: 220px 1fr 148px 148px 1fr;
-      gap: 14px 16px;
-      margin-bottom: 14px;
-    }
-
-    @media (max-width: 1000px) { .se-grid { grid-template-columns: repeat(3,1fr); } }
-    @media (max-width:  640px) { .se-grid { grid-template-columns: 1fr 1fr; } }
-
-    .btn-se-add {
-      height: 36px;
-      padding: 0 18px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      background: var(--orange);
-      color: #fff;
-      border: none;
-      font-family: inherit;
-      transition: background .13s, transform .1s;
-      box-shadow: 0 2px 7px rgba(249,115,22,.28);
-    }
-
-    .btn-se-add:hover { background: var(--orange-h); transform: translateY(-1px); }
-
-    /* ──────────────────────────────────── TABLE */
-    .count-pill {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 22px; height: 22px;
-      padding: 0 7px;
-      border-radius: 99px;
-      background: var(--orange);
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      box-shadow: 0 2px 7px rgba(249,115,22,.3);
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-    }
-
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-
-    thead th {
-      background: #FBF7F3;
-      padding: 10px 12px;
-      text-align: left;
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-    }
-
-    thead th:first-child {
-      border-left: 3px solid var(--orange);
-    }
-
-    thead th:last-child { width: 44px; text-align: center; }
-
-    tbody tr { border-bottom: 1px solid #F5EFEA; transition: background .1s; }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: #FFF7ED; }
-
-    tbody td {
-      padding: 9px 12px;
-      white-space: nowrap;
-      color: var(--text);
-    }
-
-    tbody td:last-child { text-align: center; }
-
-    .empty-state {
-      padding: 44px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .tag-orange { background: #FFF0E0; color: var(--orange-dark); }
-    .tag-green  { background: #D1FAE5; color: #065F46; }
-    .tag-indigo { background: var(--tag-bg); color: var(--tag-text); }
-
-    td.empty-cell { color: #D6CFC8; }
-
-    /* SE / SENÃO sub-rows */
-    tbody .row-se { border-bottom: none; }
-    tbody .row-se td { background: #FFF7ED; padding-top: 5px; padding-bottom: 4px; }
-    tbody .row-se:hover td { background: #FFEDD5; }
-
-    tbody .row-senao td { background: #F0FDF4; padding-top: 4px; padding-bottom: 7px; }
-    tbody .row-senao:hover td { background: #DCFCE7; }
-
-    td.indent-arrow { color: #C4B5A8; font-size: 15px; }
-
-    .badge-se {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      border-radius: 5px;
-      background: #FED7AA;
-      color: #7C2D12;
-      font-size: 10.5px;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .badge-senao {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      border-radius: 5px;
-      background: #A7F3D0;
-      color: #064E3B;
-      font-size: 10.5px;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .se-condition-text {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 5px;
-      font-size: 12px;
-    }
-
-    .se-func-chip {
-      display: inline-flex;
-      padding: 2px 7px;
-      background: #EEF2FF;
-      color: #4338CA;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .se-arrow { color: var(--muted); }
-    .se-result { font-weight: 600; }
-
-    .btn-remove-cond {
-      width: 20px; height: 20px;
-      border-radius: 50%;
-      border: 1px solid #FECACA;
-      background: transparent;
-      color: var(--danger);
-      font-size: 13px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      transition: background .13s;
-      padding: 0;
-    }
-
-    .btn-remove-cond:hover { background: #FEE2E2; }
-
-    .btn-edit {
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      border: 1px solid #BFDBFE;
-      background: #EFF6FF;
-      color: #1D4ED8;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      line-height: 1;
-      transition: background .13s, transform .1s;
-    }
-    .btn-edit:hover { background: #DBEAFE; transform: scale(1.1); }
-
-    .badge-e {
-      display: inline-flex; align-items: center;
-      padding: 2px 8px; border-radius: 5px;
-      background: #DBEAFE; color: #1E3A5F;
-      font-size: 10.5px; font-weight: 700; flex-shrink: 0;
-    }
-    .badge-ou {
-      display: inline-flex; align-items: center;
-      padding: 2px 8px; border-radius: 5px;
-      background: #EDE9FE; color: #4C1D95;
-      font-size: 10.5px; font-weight: 700; flex-shrink: 0;
-    }
-
-    .se-op-group {
-      display: none;
-      border: 1.5px solid var(--se-border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .se-op-btn {
-      height: 36px; padding: 0 18px;
-      border: none; background: transparent;
-      color: var(--orange-dark);
-      font-size: 13px; font-weight: 700;
-      cursor: pointer; font-family: inherit;
-      transition: background .13s;
-    }
-    .se-op-btn + .se-op-btn { border-left: 1.5px solid var(--se-border); }
-    .se-op-btn.selected { background: var(--orange); color: #fff; }
-    .se-op-btn:hover { background: var(--orange-lt); }
-
-    .se-row {
-      padding: 12px 14px;
-      background: rgba(255,255,255,.65);
-      border: 1px solid var(--se-border);
-      border-radius: 8px;
-    }
-    .se-row-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .se-row-grid {
-      display: grid;
-      grid-template-columns: 1fr 148px 148px 1fr;
-      gap: 12px 14px;
-    }
-    @media (max-width:900px) { .se-row-grid { grid-template-columns: 1fr 1fr; } }
-    .se-row-sep {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 8px 0;
-    }
-    .se-row-sep::before, .se-row-sep::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--se-border);
-    }
-
-    .btn-cancel-edit {
-      height: 40px; padding: 0 14px; border-radius: 8px;
-      font-size: 13px; font-weight: 600; cursor: pointer;
-      background: transparent; color: var(--danger);
-      border: 1.5px solid #FECACA; font-family: inherit;
-      transition: background .13s; display: none;
-    }
-    .btn-cancel-edit:hover { background: #FEF2F2; }
-
-    .check-group {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      height: 40px;
-    }
-    .check-item {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      cursor: pointer;
-      font-size: 13.5px;
-      color: var(--text);
-      user-select: none;
-      font-weight: 500;
-    }
-    .check-item input[type="checkbox"] { display: none; }
-    .check-box {
-      width: 18px; height: 18px;
-      border: 2px solid var(--border-h);
-      border-radius: 5px;
-      background: var(--surface);
-      display: flex; align-items: center; justify-content: center;
-      transition: background .15s, border-color .15s;
-      flex-shrink: 0;
-    }
-    .check-item input:checked + .check-box {
-      background: var(--orange);
-      border-color: var(--orange);
-    }
-    .check-item input:checked + .check-box::after {
-      content: '';
-      width: 5px; height: 9px;
-      border: 2px solid #fff;
-      border-top: none; border-left: none;
-      transform: rotate(45deg) translateY(-1px);
-    }
-    .check-group-err .check-box { border-color: var(--danger) !important; }
-
-    /* ──────────────────────────────────── MODAL */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(28,25,23,.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 400;
-      padding: 20px;
-    }
-    .modal-overlay.open { display: flex; }
-
-    .modal-panel {
-      background: var(--surface);
-      border-radius: 14px;
-      width: min(860px, 95vw);
-      max-height: 85vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 24px 64px rgba(28,25,23,.22), 0 4px 16px rgba(28,25,23,.1);
-    }
-
-    .modal-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      padding: 20px 24px 16px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .modal-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .modal-sub {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 3px;
-    }
-
-    .modal-close {
-      width: 32px; height: 32px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--muted);
-      font-size: 20px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background .13s, color .13s;
-      flex-shrink: 0;
-      line-height: 1;
-      font-family: inherit;
-    }
-    .modal-close:hover { background: var(--bg); color: var(--text); }
-
-    .modal-search-row {
-      padding: 12px 24px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    .modal-search-row input {
-      height: 36px;
-      font-size: 13px;
-    }
-
-    .modal-count {
-      padding: 6px 24px;
-      font-size: 11px;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      background: #FDFAF7;
-    }
-
-    .modal-body {
-      flex: 1;
-      overflow-y: auto;
-    }
-
-    .modal-body .table-wrap {
-      border: none;
-      border-radius: 0;
-    }
-
-    .modal-body thead th {
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-
-    .modal-body tbody tr:hover { background: #FFF7ED; }
-
-    /* ──────────────────────────────────── INSIGHTS */
-    .insight-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      margin-bottom: 18px;
-      max-width: 900px;
-      overflow: hidden;
-    }
-    .insight-card-header {
-      display: flex; align-items: flex-start; gap: 14px;
-      padding: 18px 24px 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .insight-icon {
-      width: 38px; height: 38px; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; flex-shrink: 0;
-    }
-    .insight-icon-warn  { background: #FEF3C7; }
-    .insight-icon-blue  { background: #DBEAFE; }
-    .insight-icon-green { background: #D1FAE5; }
-    .insight-title { font-size: 14px; font-weight: 700; color: var(--text); }
-    .insight-sub   { font-size: 12px; color: var(--muted); margin-top: 3px; }
-    .insight-tag {
-      display: inline-flex; align-items: center;
-      padding: 2px 9px; border-radius: 99px;
-      font-size: 10.5px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
-    }
-    .insight-tag-warn  { background: #FEF3C7; color: #92400E; }
-    .insight-tag-blue  { background: #DBEAFE; color: #1E3A5F; }
-    .insight-tag-green { background: #D1FAE5; color: #064E3B; }
-    .insight-card-body { padding: 20px 24px; }
-    .insight-body-text { font-size: 13px; color: var(--text); line-height: 1.6; }
-    .insight-nc-row {
-      display: grid; grid-template-columns: repeat(3,1fr);
-      gap: 12px; margin: 14px 0;
-    }
-    @media (max-width:800px) { .insight-nc-row { grid-template-columns: 1fr; } }
-    .insight-nc-item {
-      display: flex; align-items: flex-start; gap: 10px;
-      padding: 12px 14px;
-      background: #FFF8F1; border: 1px solid #FDE8CC; border-radius: 8px;
-    }
-    .insight-nc-item > div { display: flex; flex-direction: column; gap: 3px; }
-    .insight-nc-item strong { color: var(--text); font-size: 13px; }
-    .insight-nc-item span  { color: var(--muted); font-size: 11.5px; }
-    .nc-badge { font-size: 16px; color: #D97706; flex-shrink: 0; margin-top: 2px; }
-    .insight-arrow-row {
-      display: flex; align-items: center; gap: 12px; margin: 14px 0;
-    }
-    .insight-arrow-row::before, .insight-arrow-row::after {
-      content: ''; flex: 1; height: 1px; background: var(--border);
-    }
-    .insight-arrow-label {
-      font-size: 11px; font-weight: 700; color: var(--muted);
-      text-transform: uppercase; letter-spacing: .07em; white-space: nowrap;
-    }
-    .consequence-row { display: flex; flex-direction: column; gap: 8px; }
-    .consequence-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px;
-      background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px;
-      font-size: 13px; color: var(--text);
-    }
-    .consequence-icon { font-size: 15px; flex-shrink: 0; }
-    .vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px; }
-    @media (max-width:700px) { .vs-grid { grid-template-columns: 1fr; } }
-    .vs-col { padding: 16px; border-radius: 8px; }
-    .vs-col-now   { background: #F3F4F6; border: 1px solid #E5E7EB; }
-    .vs-col-ideal { background: #F0FDF4; border: 1px solid #BBF7D0; }
-    .vs-col h4 {
-      font-size: 10.5px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .07em; margin-bottom: 12px;
-    }
-    .vs-col-now h4   { color: #6B7280; }
-    .vs-col-ideal h4 { color: #065F46; }
-    .vs-item {
-      display: flex; align-items: center; gap: 8px;
-      padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,.05); font-size: 13px;
-    }
-    .vs-item:last-child { border-bottom: none; }
-    .vs-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .vs-dot-gray  { background: #9CA3AF; }
-    .vs-dot-green { background: var(--success); }
-    .vs-example { font-size: 12px; gap: 6px; flex-wrap: wrap; }
-    .example-badge {
-      display: inline-flex; align-items: center;
-      padding: 1px 7px; border-radius: 99px;
-      background: #D1FAE5; color: #065F46;
-      font-size: 10px; font-weight: 700; flex-shrink: 0;
-    }
-    .insight-callout {
-      margin-top: 16px; padding: 12px 16px;
-      background: var(--orange-lt);
-      border-left: 3px solid var(--orange);
-      border-radius: 6px; font-size: 13px; color: var(--text); line-height: 1.6;
-    }
-    .insight-decision-box {
-      padding: 16px 18px;
-      background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px;
-    }
-    .decision-label {
-      font-size: 10.5px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .07em; color: #1D4ED8; margin-bottom: 8px;
-    }
-
-    /* ── action bar ── */
-    .action-bar {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); box-shadow: var(--shadow);
-      padding: 12px 18px; margin-bottom: 18px;
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    }
-    .action-bar-label {
-      font-size: 10.5px; font-weight: 700; color: var(--muted);
-      text-transform: uppercase; letter-spacing: .07em; white-space: nowrap;
-      padding-right: 6px; border-right: 1px solid var(--border); margin-right: 2px;
-    }
-    .action-bar .ab-input {
-      height: 34px; font-size: 12px; border-radius: 7px;
-      border: 1.5px solid var(--border); padding: 0 10px;
-      font-family: inherit; color: var(--text); background: var(--surface);
-      outline: none; transition: border-color .15s, box-shadow .15s;
-    }
-    .action-bar .ab-input:focus {
-      border-color: var(--orange); box-shadow: 0 0 0 3px rgba(249,115,22,.12);
-    }
-    .ab-text { width: 138px; }
-    .ab-num  { width: 96px; }
-    .ab-sel  { min-width: 110px; cursor: pointer; appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2378716C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 9px center; padding-right: 26px; }
-    .btn-apply {
-      height: 34px; padding: 0 16px; border-radius: 7px; border: none;
-      background: var(--orange); color: #fff; font-size: 12px; font-weight: 700;
-      cursor: pointer; font-family: inherit; transition: background .13s;
-      box-shadow: 0 2px 7px rgba(249,115,22,.28);
-    }
-    .btn-apply:hover { background: var(--orange-h); }
-    .btn-whatsapp {
-      height: 34px; padding: 0 14px; border-radius: 7px; border: none;
-      background: #25D366; color: #fff; font-size: 12px; font-weight: 700;
-      cursor: pointer; font-family: inherit; transition: background .13s;
-      display: inline-flex; align-items: center; gap: 6px;
-      box-shadow: 0 2px 7px rgba(37,211,102,.25); margin-left: auto;
-    }
-    .btn-whatsapp:hover { background: #1DAA56; }
-    .ab-sel-count {
-      font-size: 11.5px; color: var(--orange-dark); font-weight: 600;
-      background: var(--orange-lt); padding: 3px 10px; border-radius: 99px;
-    }
-    input[type="checkbox"].row-check, input[type="checkbox"].hdr-check {
-      width: 15px; height: 15px; cursor: pointer; accent-color: var(--orange);
-    }
-    .pcm-modal-overlay {
-      position: fixed; inset: 0; background: rgba(28,25,23,.5);
-      display: none; align-items: center; justify-content: center;
-      z-index: 500; padding: 20px;
-    }
-    .pcm-modal-overlay.open { display: flex; }
-    .pcm-modal-panel {
-      background: var(--surface); border-radius: 14px;
-      width: min(580px, 95vw); display: flex; flex-direction: column;
-      overflow: hidden; box-shadow: 0 24px 64px rgba(28,25,23,.22);
-    }
-    #pcm-message {
-      font-family: 'Courier New', monospace; font-size: 12.5px; line-height: 1.7;
-      white-space: pre; background: #F8F9FA; border: 1px solid var(--border);
-      border-radius: 8px; padding: 14px 16px; margin: 16px 20px 0;
-      resize: none; height: 280px; outline: none; color: var(--text);
-    }
-
-    /* ── insights layout ── */
-    .insights-layout {
-      display: grid;
-      grid-template-columns: 360px 1fr;
-      gap: 18px;
-      align-items: start;
-    }
-    .insights-right { display: flex; flex-direction: column; gap: 18px; }
-    @media (max-width:1200px) { .insights-layout { grid-template-columns: 1fr; } }
-    .i-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
-    }
-    .i-card-title {
-      display: flex; align-items: center; gap: 10px;
-      padding: 14px 18px; border-bottom: 1px solid var(--border);
-      font-size: 11px; font-weight: 700; color: var(--muted);
-      text-transform: uppercase; letter-spacing: .08em;
-    }
-    .i-scroll { overflow-y: auto; max-height: 560px; overflow-x: auto; }
-    .i-scroll table { font-size: 12px; }
-    .i-search {
-      padding: 8px 14px; border-bottom: 1px solid var(--border); background: #FDFAF7;
-    }
-    .i-search input { height: 32px; font-size: 12px; }
-    th.th-act {
-      background: #EFF6FF !important; color: #1D4ED8 !important;
-      border-bottom: 2px solid #BFDBFE !important;
-    }
-    td.td-act { background: #F8FAFF; }
-    td.td-act input, td.td-act select {
-      height: 30px; font-size: 12px; border-radius: 6px;
-      border: 1.5px solid #BFDBFE; padding: 0 8px; width: 100%;
-      font-family: inherit; color: var(--text); background: #fff;
-      outline: none;
-    }
-    td.td-act select { cursor: pointer; min-width: 90px; }
-    td.td-act input[type="number"] { width: 78px; }
-    td.td-act input[type="text"]   { width: 110px; }
-    .fila-badge-1 { background:#FFF0E0; color:var(--orange-dark); }
-    .fila-badge-2 { background:#EEF2FF; color:var(--tag-text); }
-  </style>
-</head>
-<body>
-
-<!-- ══ SIDEBAR ══════════════════════════════════════════════════════════════ -->
-<aside class="sidebar">
-  <div class="sidebar-brand">
-    <div class="brand-icon">MD</div>
-    <div class="brand-text">
-      <strong>Parâmetros</strong>
-      <span>Portal de Configuração</span>
-    </div>
-  </div>
-
-  <nav class="sidebar-nav">
-    <p class="nav-label">Principal</p>
-    <a class="nav-item" href="#">Dashboard</a>
-    <a class="nav-item active" data-view="main" href="#" onclick="showView('main');return false">Motor de Distribuição</a>
-    <a class="nav-item" href="#">Regras Ativas</a>
-    <a class="nav-item" data-view="insights" href="#" onclick="showView('insights');return false">Insights</a>
-
-    <p class="nav-label">Gestão</p>
-    <a class="nav-item nav-item-db" href="#" onclick="openBase('dineg');return false">Tabela Dineg</a>
-    <a class="nav-item nav-item-db" href="#" onclick="openBase('coord');return false">Base Coordenadora</a>
-    <a class="nav-item nav-item-db" href="#" onclick="openBase('func');return false">Base Funcional</a>
-    <a class="nav-item nav-item-db" href="#" onclick="openBase('leads');return false">Lead / Oferta</a>
-    <a class="nav-item" href="#">Histórico</a>
-    <a class="nav-item" href="#">Usuários</a>
-
-    <p class="nav-label">Sistema</p>
-    <a class="nav-item" href="#">Configurações</a>
-    <a class="nav-item" href="#">Suporte</a>
-  </nav>
-
-  <div class="sidebar-footer">
-    <div class="user-avatar">LV</div>
-    <div class="user-info">
-      <strong>Lucas V.</strong>
-      <span>Administrador</span>
-    </div>
-  </div>
-</aside>
-
-<!-- ══ MAIN ════════════════════════════════════════════════════════════════ -->
-<div class="layout-main">
-
-  <header class="topbar">
-    <div class="breadcrumb">
-      <span>Início</span>
-      <span class="breadcrumb-sep">›</span>
-      <span>Configurações</span>
-      <span class="breadcrumb-sep">›</span>
-      <span class="breadcrumb-active" id="topbar-title">Motor de Distribuição</span>
-    </div>
-    <div class="env-badge">
-      <div class="env-dot"></div>
-      Ambiente: Produção
-    </div>
-  </header>
-
-  <div class="content" id="view-main">
-    <div class="page-head">
-      <h1>Motor de Distribuição</h1>
-      <p>Selecione Ator e Modelo, preencha as regras de distribuição e clique em <strong>+</strong> para adicionar.</p>
-    </div>
-
-    <!-- Card 1 – Ator e Modelo -->
-    <div class="card">
-      <div class="card-title">
-        <span class="badge">1</span> Ator e Modelo
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Motor de Distribuição — Portal de Parametrização</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --orange: #f97316;
+        --orange-h: #ea6c0a;
+        --orange-lt: #fff7ed;
+        --orange-mid: #fed7aa;
+        --orange-dark: #c2410c;
+
+        --sidebar-w: 240px;
+        --sidebar-bg: #ffffff;
+        --sidebar-border: #f0e8df;
+        --sidebar-text: #6b7280;
+        --sidebar-text-h: #374151;
+        --sidebar-act-bg: #fff7ed;
+        --sidebar-act: #c2410c;
+
+        --bg: #fdf8f3;
+        --surface: #ffffff;
+        --border: #ede8e3;
+        --border-h: #d6cfc8;
+        --text: #1c1917;
+        --muted: #78716c;
+        --radius: 10px;
+        --shadow:
+          0 1px 3px rgba(120, 80, 40, 0.06), 0 4px 14px rgba(120, 80, 40, 0.06);
+
+        --success: #059669;
+        --danger: #dc2626;
+        --tag-bg: #eef2ff;
+        --tag-text: #4338ca;
+
+        --se-bg: #fffbf7;
+        --se-border: #fdcfa4;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        font-family:
+          'Segoe UI',
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 14px;
+        display: flex;
+      }
+
+      /* ──────────────────────────────────── SIDEBAR */
+      .sidebar {
+        width: var(--sidebar-w);
+        flex-shrink: 0;
+        background: var(--sidebar-bg);
+        border-right: 1px solid var(--sidebar-border);
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        z-index: 100;
+      }
+
+      .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 20px 18px 18px;
+        border-bottom: 1px solid var(--sidebar-border);
+      }
+
+      .brand-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #f97316, #fdba74);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+        flex-shrink: 0;
+        box-shadow: 0 3px 10px rgba(249, 115, 22, 0.25);
+      }
+
+      .brand-text strong {
+        display: block;
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.25;
+      }
+
+      .brand-text span {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+      }
+
+      .sidebar-nav {
+        flex: 1;
+        padding: 14px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        overflow-y: auto;
+      }
+
+      .nav-label {
+        font-size: 9.5px;
+        font-weight: 700;
+        color: #d1c5bc;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 14px 8px 5px;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        color: var(--sidebar-text);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition:
+          background 0.13s,
+          color 0.13s;
+        text-decoration: none;
+        user-select: none;
+      }
+
+      .nav-item::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #e5ddd8;
+        flex-shrink: 0;
+        transition:
+          background 0.15s,
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .nav-item:hover {
+        background: #fbf6f2;
+        color: var(--sidebar-text-h);
+      }
+
+      .nav-item:hover::before {
+        background: #d6c8c0;
+      }
+
+      .nav-item.active {
+        background: var(--sidebar-act-bg);
+        color: var(--sidebar-act);
+        font-weight: 600;
+      }
+
+      .nav-item.active::before {
+        background: var(--orange);
+        transform: scale(1.35);
+        box-shadow: 0 0 7px rgba(249, 115, 22, 0.45);
+      }
+
+      .nav-item-db::before {
+        background: #dbeafe !important;
+      }
+      .nav-item-db:hover::before {
+        background: #93c5fd !important;
+      }
+
+      .sidebar-footer {
+        padding: 14px 16px;
+        border-top: 1px solid var(--sidebar-border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .user-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f97316, #fdba74);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(249, 115, 22, 0.22);
+      }
+
+      .user-info strong {
+        display: block;
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+
+      .user-info span {
+        display: block;
+        color: var(--muted);
+        font-size: 10.5px;
+      }
+
+      /* ──────────────────────────────────── TOPBAR */
+      .layout-main {
+        margin-left: var(--sidebar-w);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      .topbar {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0 28px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        box-shadow: 0 1px 4px rgba(120, 80, 40, 0.05);
+      }
+
+      .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .breadcrumb-sep {
+        color: #d6c8c0;
+      }
+
+      .breadcrumb-active {
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      .env-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 11px;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        font-size: 11.5px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      .env-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--success);
+      }
+
+      /* ──────────────────────────────────── CONTENT */
+      .content {
+        padding: 28px;
+        flex: 1;
+      }
+
+      .page-head {
+        margin-bottom: 22px;
+      }
+
+      .page-head h1 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .page-head p {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      /* ──────────────────────────────────── CARDS */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 20px 24px;
+        margin-bottom: 18px;
+        max-width: 1360px;
+      }
+
+      .card-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding-bottom: 15px;
+        margin-bottom: 18px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .badge {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--orange);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 2px 7px rgba(249, 115, 22, 0.3);
+      }
+
+      .badge-green {
+        background: var(--success);
+        box-shadow: 0 2px 7px rgba(5, 150, 105, 0.25);
+      }
+
+      /* ──────────────────────────────────── FORM */
+      .selector-row {
+        display: flex;
+        gap: 14px;
+        align-items: flex-end;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .field label {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      select,
+      input[type='text'],
+      input[type='number'] {
+        height: 40px;
+        padding: 0 12px;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--text);
+        background: var(--surface);
+        outline: none;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s,
+          background 0.15s;
+        font-family: inherit;
+      }
+
+      select {
+        min-width: 195px;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='6' viewBox='0 0 11 6'%3E%3Cpath d='M1 1l4.5 4 4.5-4' stroke='%2378716C' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 32px;
+      }
+
+      input {
+        width: 100%;
+      }
+
+      select:hover:not(:disabled),
+      input:hover {
+        border-color: var(--border-h);
+      }
+
+      select:focus,
+      input:focus {
+        border-color: var(--orange);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+        background: #fffcf9;
+      }
+
+      select:disabled {
+        background: #faf6f2;
+        color: #a89e96;
+        cursor: not-allowed;
+        opacity: 0.75;
+      }
+
+      /* Buttons */
+      .btn-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: none;
+        background: var(--orange);
+        color: #fff;
+        font-size: 24px;
+        font-weight: 300;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition:
+          background 0.13s,
+          transform 0.12s,
+          box-shadow 0.15s;
+        line-height: 1;
+        box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35);
+      }
+
+      .btn-circle:hover:not(:disabled) {
+        background: var(--orange-h);
+        transform: scale(1.08);
+        box-shadow: 0 4px 14px rgba(249, 115, 22, 0.4);
+      }
+
+      .btn-circle:active:not(:disabled) {
+        transform: scale(0.96);
+      }
+
+      .btn-circle:disabled {
+        background: #e5ddd8;
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+
+      .btn-remove {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 1px solid #fecaca;
+        background: #fef2f2;
+        color: var(--danger);
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        transition:
+          background 0.13s,
+          transform 0.1s;
+      }
+
+      .btn-remove:hover {
+        background: #fee2e2;
+        transform: scale(1.1);
+      }
+
+      .btn-ghost {
+        height: 38px;
+        padding: 0 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: transparent;
+        color: var(--muted);
+        border: 1.5px solid var(--border);
+        font-family: inherit;
+        transition:
+          background 0.13s,
+          border-color 0.13s;
+      }
+
+      .btn-ghost:hover {
+        background: var(--bg);
+        border-color: var(--border-h);
+      }
+
+      /* Criteria grid */
+      .criteria-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 14px 16px;
+        margin-bottom: 16px;
+      }
+
+      @media (max-width: 1100px) {
+        .criteria-grid {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+      @media (max-width: 900px) {
+        .criteria-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      @media (max-width: 600px) {
+        .criteria-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      .form-footer {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      /* ──────────────────────────────────── SE SECTION */
+      .se-section {
+        margin-top: 22px;
+        padding-top: 18px;
+        border-top: 1px dashed var(--border);
+      }
+
+      .se-toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .btn-se-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--se-bg);
+        border: 1.5px solid var(--se-border);
+        border-radius: 8px;
+        padding: 6px 14px;
+        color: var(--orange-dark);
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.13s;
+        user-select: none;
+      }
+
+      .btn-se-toggle:hover {
+        background: #fff0e0;
+      }
+
+      .se-hint {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .se-panel {
+        margin-top: 14px;
+        padding: 16px 18px;
+        background: var(--se-bg);
+        border: 1.5px solid var(--se-border);
+        border-radius: var(--radius);
+      }
+
+      .se-panel-note {
+        font-size: 12px;
+        color: #a16207;
+        margin-bottom: 14px;
+      }
+
+      .se-grid {
+        display: grid;
+        grid-template-columns: 220px 1fr 148px 148px 1fr;
+        gap: 14px 16px;
+        margin-bottom: 14px;
+      }
+
+      @media (max-width: 1000px) {
+        .se-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      @media (max-width: 640px) {
+        .se-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .btn-se-add {
+        height: 36px;
+        padding: 0 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--orange);
+        color: #fff;
+        border: none;
+        font-family: inherit;
+        transition:
+          background 0.13s,
+          transform 0.1s;
+        box-shadow: 0 2px 7px rgba(249, 115, 22, 0.28);
+      }
+
+      .btn-se-add:hover {
+        background: var(--orange-h);
+        transform: translateY(-1px);
+      }
+
+      /* ──────────────────────────────────── TABLE */
+      .count-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 7px;
+        border-radius: 99px;
+        background: var(--orange);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        box-shadow: 0 2px 7px rgba(249, 115, 22, 0.3);
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      thead th {
+        background: #fbf7f3;
+        padding: 10px 12px;
+        text-align: left;
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+      }
+
+      thead th:first-child {
+        border-left: 3px solid var(--orange);
+      }
+
+      thead th:last-child {
+        width: 44px;
+        text-align: center;
+      }
+
+      tbody tr {
+        border-bottom: 1px solid #f5efea;
+        transition: background 0.1s;
+      }
+      tbody tr:last-child {
+        border-bottom: none;
+      }
+      tbody tr:hover {
+        background: #fff7ed;
+      }
+
+      tbody td {
+        padding: 9px 12px;
+        white-space: nowrap;
+        color: var(--text);
+      }
+
+      tbody td:last-child {
+        text-align: center;
+      }
+
+      .empty-state {
+        padding: 44px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .tag-orange {
+        background: #fff0e0;
+        color: var(--orange-dark);
+      }
+      .tag-green {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .tag-indigo {
+        background: var(--tag-bg);
+        color: var(--tag-text);
+      }
+
+      td.empty-cell {
+        color: #d6cfc8;
+      }
+
+      /* SE / SENÃO sub-rows */
+      tbody .row-se {
+        border-bottom: none;
+      }
+      tbody .row-se td {
+        background: #fff7ed;
+        padding-top: 5px;
+        padding-bottom: 4px;
+      }
+      tbody .row-se:hover td {
+        background: #ffedd5;
+      }
+
+      tbody .row-senao td {
+        background: #f0fdf4;
+        padding-top: 4px;
+        padding-bottom: 7px;
+      }
+      tbody .row-senao:hover td {
+        background: #dcfce7;
+      }
+
+      td.indent-arrow {
+        color: #c4b5a8;
+        font-size: 15px;
+      }
+
+      .badge-se {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 5px;
+        background: #fed7aa;
+        color: #7c2d12;
+        font-size: 10.5px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      .badge-senao {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 5px;
+        background: #a7f3d0;
+        color: #064e3b;
+        font-size: 10.5px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      .se-condition-text {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 5px;
+        font-size: 12px;
+      }
+
+      .se-func-chip {
+        display: inline-flex;
+        padding: 2px 7px;
+        background: #eef2ff;
+        color: #4338ca;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .se-arrow {
+        color: var(--muted);
+      }
+      .se-result {
+        font-weight: 600;
+      }
+
+      .btn-remove-cond {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 1px solid #fecaca;
+        background: transparent;
+        color: var(--danger);
+        font-size: 13px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        transition: background 0.13s;
+        padding: 0;
+      }
+
+      .btn-remove-cond:hover {
+        background: #fee2e2;
+      }
+
+      .btn-edit {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        transition:
+          background 0.13s,
+          transform 0.1s;
+      }
+      .btn-edit:hover {
+        background: #dbeafe;
+        transform: scale(1.1);
+      }
+
+      .badge-e {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 5px;
+        background: #dbeafe;
+        color: #1e3a5f;
+        font-size: 10.5px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .badge-ou {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 5px;
+        background: #ede9fe;
+        color: #4c1d95;
+        font-size: 10.5px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      .se-op-group {
+        display: none;
+        border: 1.5px solid var(--se-border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .se-op-btn {
+        height: 36px;
+        padding: 0 18px;
+        border: none;
+        background: transparent;
+        color: var(--orange-dark);
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.13s;
+      }
+      .se-op-btn + .se-op-btn {
+        border-left: 1.5px solid var(--se-border);
+      }
+      .se-op-btn.selected {
+        background: var(--orange);
+        color: #fff;
+      }
+      .se-op-btn:hover {
+        background: var(--orange-lt);
+      }
+
+      .se-row {
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.65);
+        border: 1px solid var(--se-border);
+        border-radius: 8px;
+      }
+      .se-row-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+      .se-row-grid {
+        display: grid;
+        grid-template-columns: 1fr 148px 148px 1fr;
+        gap: 12px 14px;
+      }
+      @media (max-width: 900px) {
+        .se-row-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .se-row-sep {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 8px 0;
+      }
+      .se-row-sep::before,
+      .se-row-sep::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--se-border);
+      }
+
+      .btn-cancel-edit {
+        height: 40px;
+        padding: 0 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: transparent;
+        color: var(--danger);
+        border: 1.5px solid #fecaca;
+        font-family: inherit;
+        transition: background 0.13s;
+        display: none;
+      }
+      .btn-cancel-edit:hover {
+        background: #fef2f2;
+      }
+
+      .check-group {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        height: 40px;
+      }
+      .check-item {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        cursor: pointer;
+        font-size: 13.5px;
+        color: var(--text);
+        user-select: none;
+        font-weight: 500;
+      }
+      .check-item input[type='checkbox'] {
+        display: none;
+      }
+      .check-box {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--border-h);
+        border-radius: 5px;
+        background: var(--surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.15s,
+          border-color 0.15s;
+        flex-shrink: 0;
+      }
+      .check-item input:checked + .check-box {
+        background: var(--orange);
+        border-color: var(--orange);
+      }
+      .check-item input:checked + .check-box::after {
+        content: '';
+        width: 5px;
+        height: 9px;
+        border: 2px solid #fff;
+        border-top: none;
+        border-left: none;
+        transform: rotate(45deg) translateY(-1px);
+      }
+      .check-group-err .check-box {
+        border-color: var(--danger) !important;
+      }
+
+      /* ──────────────────────────────────── MODAL */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(28, 25, 23, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 400;
+        padding: 20px;
+      }
+      .modal-overlay.open {
+        display: flex;
+      }
+
+      .modal-panel {
+        background: var(--surface);
+        border-radius: 14px;
+        width: min(860px, 95vw);
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow:
+          0 24px 64px rgba(28, 25, 23, 0.22),
+          0 4px 16px rgba(28, 25, 23, 0.1);
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      .modal-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .modal-sub {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 3px;
+      }
+
+      .modal-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.13s,
+          color 0.13s;
+        flex-shrink: 0;
+        line-height: 1;
+        font-family: inherit;
+      }
+      .modal-close:hover {
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .modal-search-row {
+        padding: 12px 24px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .modal-search-row input {
+        height: 36px;
+        font-size: 13px;
+      }
+
+      .modal-count {
+        padding: 6px 24px;
+        font-size: 11px;
+        color: var(--muted);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+        background: #fdfaf7;
+      }
+
+      .modal-body {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .modal-body .table-wrap {
+        border: none;
+        border-radius: 0;
+      }
+
+      .modal-body thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+      }
+
+      .modal-body tbody tr:hover {
+        background: #fff7ed;
+      }
+
+      /* ──────────────────────────────────── INSIGHTS */
+      .insight-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        margin-bottom: 18px;
+        max-width: 900px;
+        overflow: hidden;
+      }
+      .insight-card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 18px 24px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .insight-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+      .insight-icon-warn {
+        background: #fef3c7;
+      }
+      .insight-icon-blue {
+        background: #dbeafe;
+      }
+      .insight-icon-green {
+        background: #d1fae5;
+      }
+      .insight-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .insight-sub {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 3px;
+      }
+      .insight-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 9px;
+        border-radius: 99px;
+        font-size: 10.5px;
+        font-weight: 700;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .insight-tag-warn {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .insight-tag-blue {
+        background: #dbeafe;
+        color: #1e3a5f;
+      }
+      .insight-tag-green {
+        background: #d1fae5;
+        color: #064e3b;
+      }
+      .insight-card-body {
+        padding: 20px 24px;
+      }
+      .insight-body-text {
+        font-size: 13px;
+        color: var(--text);
+        line-height: 1.6;
+      }
+      .insight-nc-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin: 14px 0;
+      }
+      @media (max-width: 800px) {
+        .insight-nc-row {
+          grid-template-columns: 1fr;
+        }
+      }
+      .insight-nc-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
+        background: #fff8f1;
+        border: 1px solid #fde8cc;
+        border-radius: 8px;
+      }
+      .insight-nc-item > div {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .insight-nc-item strong {
+        color: var(--text);
+        font-size: 13px;
+      }
+      .insight-nc-item span {
+        color: var(--muted);
+        font-size: 11.5px;
+      }
+      .nc-badge {
+        font-size: 16px;
+        color: #d97706;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .insight-arrow-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 14px 0;
+      }
+      .insight-arrow-row::before,
+      .insight-arrow-row::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+      .insight-arrow-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        white-space: nowrap;
+      }
+      .consequence-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .consequence-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        font-size: 13px;
+        color: var(--text);
+      }
+      .consequence-icon {
+        font-size: 15px;
+        flex-shrink: 0;
+      }
+      .vs-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 4px;
+      }
+      @media (max-width: 700px) {
+        .vs-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .vs-col {
+        padding: 16px;
+        border-radius: 8px;
+      }
+      .vs-col-now {
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+      }
+      .vs-col-ideal {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+      }
+      .vs-col h4 {
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 12px;
+      }
+      .vs-col-now h4 {
+        color: #6b7280;
+      }
+      .vs-col-ideal h4 {
+        color: #065f46;
+      }
+      .vs-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        font-size: 13px;
+      }
+      .vs-item:last-child {
+        border-bottom: none;
+      }
+      .vs-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .vs-dot-gray {
+        background: #9ca3af;
+      }
+      .vs-dot-green {
+        background: var(--success);
+      }
+      .vs-example {
+        font-size: 12px;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .example-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 1px 7px;
+        border-radius: 99px;
+        background: #d1fae5;
+        color: #065f46;
+        font-size: 10px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .insight-callout {
+        margin-top: 16px;
+        padding: 12px 16px;
+        background: var(--orange-lt);
+        border-left: 3px solid var(--orange);
+        border-radius: 6px;
+        font-size: 13px;
+        color: var(--text);
+        line-height: 1.6;
+      }
+      .insight-decision-box {
+        padding: 16px 18px;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 8px;
+      }
+      .decision-label {
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #1d4ed8;
+        margin-bottom: 8px;
+      }
+
+      /* ── action bar ── */
+      .action-bar {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 12px 18px;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .action-bar-label {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        white-space: nowrap;
+        padding-right: 6px;
+        border-right: 1px solid var(--border);
+        margin-right: 2px;
+      }
+      .action-bar .ab-input {
+        height: 34px;
+        font-size: 12px;
+        border-radius: 7px;
+        border: 1.5px solid var(--border);
+        padding: 0 10px;
+        font-family: inherit;
+        color: var(--text);
+        background: var(--surface);
+        outline: none;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
+      }
+      .action-bar .ab-input:focus {
+        border-color: var(--orange);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+      }
+      .ab-text {
+        width: 138px;
+      }
+      .ab-num {
+        width: 96px;
+      }
+      .ab-sel {
+        min-width: 110px;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2378716C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 9px center;
+        padding-right: 26px;
+      }
+      .btn-apply {
+        height: 34px;
+        padding: 0 16px;
+        border-radius: 7px;
+        border: none;
+        background: var(--orange);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.13s;
+        box-shadow: 0 2px 7px rgba(249, 115, 22, 0.28);
+      }
+      .btn-apply:hover {
+        background: var(--orange-h);
+      }
+      .btn-whatsapp {
+        height: 34px;
+        padding: 0 14px;
+        border-radius: 7px;
+        border: none;
+        background: #25d366;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.13s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 7px rgba(37, 211, 102, 0.25);
+        margin-left: auto;
+      }
+      .btn-whatsapp:hover {
+        background: #1daa56;
+      }
+      .ab-sel-count {
+        font-size: 11.5px;
+        color: var(--orange-dark);
+        font-weight: 600;
+        background: var(--orange-lt);
+        padding: 3px 10px;
+        border-radius: 99px;
+      }
+      input[type='checkbox'].row-check,
+      input[type='checkbox'].hdr-check {
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+        accent-color: var(--orange);
+      }
+      .pcm-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(28, 25, 23, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 500;
+        padding: 20px;
+      }
+      .pcm-modal-overlay.open {
+        display: flex;
+      }
+      .pcm-modal-panel {
+        background: var(--surface);
+        border-radius: 14px;
+        width: min(580px, 95vw);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 24px 64px rgba(28, 25, 23, 0.22);
+      }
+      #pcm-message {
+        font-family: 'Courier New', monospace;
+        font-size: 12.5px;
+        line-height: 1.7;
+        white-space: pre;
+        background: #f8f9fa;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin: 16px 20px 0;
+        resize: none;
+        height: 280px;
+        outline: none;
+        color: var(--text);
+      }
+
+      /* ── insights layout ── */
+      .insights-layout {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 18px;
+        align-items: start;
+      }
+      .insights-right {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      @media (max-width: 1200px) {
+        .insights-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+      .i-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .i-card-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border);
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .i-scroll {
+        overflow-y: auto;
+        max-height: 560px;
+        overflow-x: auto;
+      }
+      .i-scroll table {
+        font-size: 12px;
+      }
+      .i-search {
+        padding: 8px 14px;
+        border-bottom: 1px solid var(--border);
+        background: #fdfaf7;
+      }
+      .i-search input {
+        height: 32px;
+        font-size: 12px;
+      }
+      th.th-act {
+        background: #eff6ff !important;
+        color: #1d4ed8 !important;
+        border-bottom: 2px solid #bfdbfe !important;
+      }
+      td.td-act {
+        background: #f8faff;
+      }
+      td.td-act input,
+      td.td-act select {
+        height: 30px;
+        font-size: 12px;
+        border-radius: 6px;
+        border: 1.5px solid #bfdbfe;
+        padding: 0 8px;
+        width: 100%;
+        font-family: inherit;
+        color: var(--text);
+        background: #fff;
+        outline: none;
+      }
+      td.td-act select {
+        cursor: pointer;
+        min-width: 90px;
+      }
+      td.td-act input[type='number'] {
+        width: 78px;
+      }
+      td.td-act input[type='text'] {
+        width: 110px;
+      }
+      .fila-badge-1 {
+        background: #fff0e0;
+        color: var(--orange-dark);
+      }
+      .fila-badge-2 {
+        background: #eef2ff;
+        color: var(--tag-text);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ══ SIDEBAR ══════════════════════════════════════════════════════════════ -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">MD</div>
+        <div class="brand-text">
+          <strong>Parâmetros</strong>
+          <span>Portal de Configuração</span>
+        </div>
       </div>
-      <div class="selector-row">
-        <div class="field">
-          <label>Ator / Canal</label>
-          <select id="sel-ator">
-            <option value="">Selecione...</option>
-            <option>Iclientes</option>
-            <option>ION</option>
-            <option>GM</option>
-            <option>Central</option>
-          </select>
+
+      <nav class="sidebar-nav">
+        <p class="nav-label">Principal</p>
+        <a class="nav-item" href="#">Dashboard</a>
+        <a
+          class="nav-item active"
+          data-view="main"
+          href="#"
+          onclick="
+            showView('main')
+            return false
+          "
+          >Motor de Distribuição</a
+        >
+        <a class="nav-item" href="#">Regras Ativas</a>
+        <a
+          class="nav-item"
+          data-view="insights"
+          href="#"
+          onclick="
+            showView('insights')
+            return false
+          "
+          >Insights</a
+        >
+
+        <p class="nav-label">Gestão</p>
+        <a
+          class="nav-item nav-item-db"
+          href="#"
+          onclick="
+            openBase('dineg')
+            return false
+          "
+          >Tabela Dineg</a
+        >
+        <a
+          class="nav-item nav-item-db"
+          href="#"
+          onclick="
+            openBase('coord')
+            return false
+          "
+          >Base Coordenadora</a
+        >
+        <a
+          class="nav-item nav-item-db"
+          href="#"
+          onclick="
+            openBase('func')
+            return false
+          "
+          >Base Funcional</a
+        >
+        <a
+          class="nav-item nav-item-db"
+          href="#"
+          onclick="
+            openBase('leads')
+            return false
+          "
+          >Lead / Oferta</a
+        >
+        <a class="nav-item" href="#">Histórico</a>
+        <a class="nav-item" href="#">Usuários</a>
+
+        <p class="nav-label">Sistema</p>
+        <a class="nav-item" href="#">Configurações</a>
+        <a class="nav-item" href="#">Suporte</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-avatar">LV</div>
+        <div class="user-info">
+          <strong>Lucas V.</strong>
+          <span>Administrador</span>
         </div>
-        <div class="field">
-          <label>Modelo</label>
-          <select id="sel-modelo" disabled>
-            <option value="">Selecione...</option>
-            <option>IAD</option>
-            <option>FISICA</option>
-            <option>IUD</option>
-            <option>SD</option>
-            <option>SDEMP</option>
-            <option>CONECTA</option>
-          </select>
+      </div>
+    </aside>
+
+    <!-- ══ MAIN ════════════════════════════════════════════════════════════════ -->
+    <div class="layout-main">
+      <header class="topbar">
+        <div class="breadcrumb">
+          <span>Início</span>
+          <span class="breadcrumb-sep">›</span>
+          <span>Configurações</span>
+          <span class="breadcrumb-sep">›</span>
+          <span class="breadcrumb-active" id="topbar-title"
+            >Motor de Distribuição</span
+          >
         </div>
-        <div class="field">
-          <label>Plataforma <span style="font-weight:400;color:var(--muted);font-size:9.5px">(opcional)</span></label>
-          <input id="sel-plataforma" type="number" list="dl-plataforma" placeholder="Todas" autocomplete="off" style="min-width:150px" />
+        <div class="env-badge">
+          <div class="env-dot"></div>
+          Ambiente: Produção
         </div>
-        <div class="field">
-          <label>Destino <span style="color:var(--danger);font-size:10px;font-weight:700">*</span></label>
-          <div class="check-group" id="chk-group">
-            <label class="check-item">
-              <input type="checkbox" id="chk-lead" onchange="onDestinoChange()" checked />
-              <span class="check-box"></span>
-              Lead
-            </label>
-            <label class="check-item">
-              <input type="checkbox" id="chk-oferta" onchange="onDestinoChange()" checked />
-              <span class="check-box"></span>
-              Oferta
-            </label>
+      </header>
+
+      <div class="content" id="view-main">
+        <div class="page-head">
+          <h1>Motor de Distribuição</h1>
+          <p>
+            Selecione Ator e Modelo, preencha as regras de distribuição e clique
+            em <strong>+</strong> para adicionar.
+          </p>
+        </div>
+
+        <!-- Card 1 – Ator e Modelo -->
+        <div class="card">
+          <div class="card-title">
+            <span class="badge">1</span> Ator e Modelo
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 2 – Regras de distribuição -->
-    <div class="card">
-      <div class="card-title">
-        <span class="badge">2</span> Regras de distribuição
-        <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted);">— preencha os campos que definem a distribuição</span>
-      </div>
-
-      <datalist id="dl-dineg"></datalist>
-      <datalist id="dl-regiao"></datalist>
-      <datalist id="dl-regional"></datalist>
-      <datalist id="dl-coordenadora"></datalist>
-      <datalist id="dl-coordenada"></datalist>
-      <datalist id="dl-plataforma"></datalist>
-      <datalist id="dl-carteira"></datalist>
-      <datalist id="dl-funcional"></datalist>
-
-      <div class="criteria-grid">
-        <div class="field">
-          <label>Dineg</label>
-          <input id="f-dineg" type="number" list="dl-dineg" autocomplete="off" />
-        </div>
-        <div class="field">
-          <label>Região</label>
-          <input id="f-regiao" type="number" list="dl-regiao" autocomplete="off" />
-        </div>
-        <div class="field">
-          <label>Regional</label>
-          <input id="f-regional" type="number" list="dl-regional" autocomplete="off" />
-        </div>
-        <div class="field">
-          <label>Plataforma</label>
-          <input id="f-plataforma" type="number" list="dl-plataforma" autocomplete="off" />
-        </div>
-        <div class="field">
-          <label>Coordenadora</label>
-          <input id="f-coordenadora" type="number" list="dl-coordenadora" autocomplete="off" />
-        </div>
-        <div class="field">
-          <label>Coordenada</label>
-          <input id="f-coordenada" type="number" list="dl-coordenada" autocomplete="off" />
-        </div>
-        <div class="field">
-          <label>Carteira</label>
-          <input id="f-carteira" type="text" list="dl-carteira" autocomplete="off" />
-        </div>
-        <div class="field">
-          <label>Produto</label>
-          <input id="f-produto" type="text" autocomplete="off" />
-        </div>
-        <div class="field">
-          <label>Segmento</label>
-          <input id="f-segmento" type="number" autocomplete="off" />
-        </div>
-      </div>
-
-      <div class="form-footer">
-        <button class="btn-ghost" onclick="clearCriteria()">Limpar campos</button>
-        <button id="btn-cancel-edit" class="btn-cancel-edit" onclick="cancelEdit()">Cancelar edição</button>
-        <button id="btn-add" class="btn-circle" disabled title="Adicionar regra" onclick="addRule()">+</button>
-      </div>
-
-      <!-- SE section -->
-      <div class="se-section">
-        <div class="se-toggle-row">
-          <button class="btn-se-toggle" onclick="toggleSE()">
-            SE <span id="se-caret">▶</span>
-          </button>
-          <span class="se-hint">adicione uma exceção para funcionais específicos em uma regra já cadastrada</span>
-        </div>
-
-        <div id="se-panel" style="display:none">
-          <div style="height:14px"></div>
-          <div class="se-panel">
-            <p class="se-panel-note">Selecione a regra e preencha as condições. Clique em <strong>+ E</strong> ou <strong>+ OU</strong> para encadear mais condições antes de confirmar.</p>
-            <div class="field" style="max-width:220px;margin-bottom:16px">
-              <label>ID da Regra</label>
-              <select id="se-id">
-                <option value="">Selecione a regra...</option>
+          <div class="selector-row">
+            <div class="field">
+              <label>Ator / Canal</label>
+              <select id="sel-ator">
+                <option value="">Selecione...</option>
+                <option>Iclientes</option>
+                <option>ION</option>
+                <option>GM</option>
+                <option>Central</option>
               </select>
             </div>
-            <div id="se-rows-container"></div>
-            <div style="display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap">
-              <div class="se-op-group" style="display:flex">
-                <button class="se-op-btn" onclick="addSeRow('E')">+ E</button>
-                <button class="se-op-btn" onclick="addSeRow('OU')">+ OU</button>
-              </div>
-              <button class="btn-se-add" onclick="addCondition()">Confirmar condições</button>
+            <div class="field">
+              <label>Modelo</label>
+              <select id="sel-modelo" disabled>
+                <option value="">Selecione...</option>
+                <option>IAD</option>
+                <option>FISICA</option>
+                <option>IUD</option>
+                <option>SD</option>
+                <option>SDEMP</option>
+                <option>CONECTA</option>
+              </select>
             </div>
+            <div class="field">
+              <label
+                >Plataforma
+                <span
+                  style="
+                    font-weight: 400;
+                    color: var(--muted);
+                    font-size: 9.5px;
+                  "
+                  >(opcional)</span
+                ></label
+              >
+              <input
+                id="sel-plataforma"
+                type="number"
+                list="dl-plataforma"
+                placeholder="Todas"
+                autocomplete="off"
+                style="min-width: 150px"
+              />
+            </div>
+            <div class="field">
+              <label
+                >Destino
+                <span
+                  style="
+                    color: var(--danger);
+                    font-size: 10px;
+                    font-weight: 700;
+                  "
+                  >*</span
+                ></label
+              >
+              <div class="check-group" id="chk-group">
+                <label class="check-item">
+                  <input
+                    type="checkbox"
+                    id="chk-lead"
+                    onchange="onDestinoChange()"
+                    checked
+                  />
+                  <span class="check-box"></span>
+                  Lead
+                </label>
+                <label class="check-item">
+                  <input
+                    type="checkbox"
+                    id="chk-oferta"
+                    onchange="onDestinoChange()"
+                    checked
+                  />
+                  <span class="check-box"></span>
+                  Oferta
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 – Regras de distribuição -->
+        <div class="card">
+          <div class="card-title">
+            <span class="badge">2</span> Regras de distribuição
+            <span
+              style="
+                font-weight: 400;
+                text-transform: none;
+                letter-spacing: 0;
+                font-size: 11px;
+                color: var(--muted);
+              "
+              >— preencha os campos que definem a distribuição</span
+            >
+          </div>
+
+          <datalist id="dl-dineg"></datalist>
+          <datalist id="dl-regiao"></datalist>
+          <datalist id="dl-regional"></datalist>
+          <datalist id="dl-coordenadora"></datalist>
+          <datalist id="dl-coordenada"></datalist>
+          <datalist id="dl-plataforma"></datalist>
+          <datalist id="dl-carteira"></datalist>
+          <datalist id="dl-funcional"></datalist>
+
+          <div class="criteria-grid">
+            <div class="field">
+              <label>Dineg</label>
+              <input
+                id="f-dineg"
+                type="number"
+                list="dl-dineg"
+                autocomplete="off"
+              />
+            </div>
+            <div class="field">
+              <label>Região</label>
+              <input
+                id="f-regiao"
+                type="number"
+                list="dl-regiao"
+                autocomplete="off"
+              />
+            </div>
+            <div class="field">
+              <label>Regional</label>
+              <input
+                id="f-regional"
+                type="number"
+                list="dl-regional"
+                autocomplete="off"
+              />
+            </div>
+            <div class="field">
+              <label>Plataforma</label>
+              <input
+                id="f-plataforma"
+                type="number"
+                list="dl-plataforma"
+                autocomplete="off"
+              />
+            </div>
+            <div class="field">
+              <label>Coordenadora</label>
+              <input
+                id="f-coordenadora"
+                type="number"
+                list="dl-coordenadora"
+                autocomplete="off"
+              />
+            </div>
+            <div class="field">
+              <label>Coordenada</label>
+              <input
+                id="f-coordenada"
+                type="number"
+                list="dl-coordenada"
+                autocomplete="off"
+              />
+            </div>
+            <div class="field">
+              <label>Carteira</label>
+              <input
+                id="f-carteira"
+                type="text"
+                list="dl-carteira"
+                autocomplete="off"
+              />
+            </div>
+            <div class="field">
+              <label>Produto</label>
+              <input id="f-produto" type="text" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label>Segmento</label>
+              <input id="f-segmento" type="number" autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <button class="btn-ghost" onclick="clearCriteria()">
+              Limpar campos
+            </button>
+            <button
+              id="btn-cancel-edit"
+              class="btn-cancel-edit"
+              onclick="cancelEdit()"
+            >
+              Cancelar edição
+            </button>
+            <button
+              id="btn-add"
+              class="btn-circle"
+              disabled
+              title="Adicionar regra"
+              onclick="addRule()"
+            >
+              +
+            </button>
+          </div>
+
+          <!-- SE section -->
+          <div class="se-section">
+            <div class="se-toggle-row">
+              <button class="btn-se-toggle" onclick="toggleSE()">
+                SE <span id="se-caret">▶</span>
+              </button>
+              <span class="se-hint"
+                >adicione uma exceção para funcionais específicos em uma regra
+                já cadastrada</span
+              >
+            </div>
+
+            <div id="se-panel" style="display: none">
+              <div style="height: 14px"></div>
+              <div class="se-panel">
+                <p class="se-panel-note">
+                  Selecione a regra e preencha as condições. Clique em
+                  <strong>+ E</strong> ou <strong>+ OU</strong> para encadear
+                  mais condições antes de confirmar.
+                </p>
+                <div
+                  class="field"
+                  style="max-width: 220px; margin-bottom: 16px"
+                >
+                  <label>ID da Regra</label>
+                  <select id="se-id">
+                    <option value="">Selecione a regra...</option>
+                  </select>
+                </div>
+                <div id="se-rows-container"></div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-top: 14px;
+                    flex-wrap: wrap;
+                  "
+                >
+                  <div class="se-op-group" style="display: flex">
+                    <button class="se-op-btn" onclick="addSeRow('E')">
+                      + E
+                    </button>
+                    <button class="se-op-btn" onclick="addSeRow('OU')">
+                      + OU
+                    </button>
+                  </div>
+                  <button class="btn-se-add" onclick="addCondition()">
+                    Confirmar condições
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 – Regras cadastradas -->
+        <div class="card">
+          <div class="card-title">
+            <span class="badge badge-green">✓</span>
+            Regras cadastradas
+            <span class="count-pill" id="rules-count">8</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Ator</th>
+                  <th>Modelo</th>
+                  <th>Plataforma</th>
+                  <th>Destino</th>
+                  <th>Dineg</th>
+                  <th>Região</th>
+                  <th>Regional</th>
+                  <th>Plataforma</th>
+                  <th>Coordenadora</th>
+                  <th>Coordenada</th>
+                  <th>Carteira</th>
+                  <th>Produto</th>
+                  <th>Segmento</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="rules-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ INSIGHTS VIEW ═══════════════════════════════════════════════════════ -->
+      <div class="content" id="view-insights" style="display: none">
+        <div class="page-head">
+          <h1>Insights</h1>
+          <p>Base D-1 · Performance de funcionais · Priorização de clientes</p>
+        </div>
+
+        <!-- Q1 – Performance por Funcional -->
+        <div class="i-card" style="margin-bottom: 18px">
+          <div class="i-card-title">
+            <span class="badge">1</span>
+            Performance por Funcional — últimos 30 dias
+          </div>
+          <div style="overflow-x: auto">
+            <table style="font-size: 12px">
+              <thead>
+                <tr>
+                  <th>Funcional</th>
+                  <th>Carteira</th>
+                  <th>Produto predominante na carteira</th>
+                  <th>Mais vendido (30d)</th>
+                  <th>Conversão (30d)</th>
+                  <th>Leads ativos</th>
+                </tr>
+              </thead>
+              <tbody id="func-perf-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Barra de ação compartilhada (Q2 + Q3) -->
+        <div class="action-bar">
+          <span class="action-bar-label">Ação em lote</span>
+          <input
+            class="ab-input ab-text"
+            type="text"
+            id="act-carteira"
+            placeholder="Nova carteira (01_XXXX)"
+          />
+          <select class="ab-input ab-sel" id="act-fila">
+            <option value="">Mudar fila…</option>
+            <option value="1">Fila 1</option>
+            <option value="2">Fila 2</option>
+          </select>
+          <input
+            class="ab-input ab-num"
+            type="number"
+            id="act-posicao"
+            placeholder="Nova posição"
+            min="1"
+          />
+          <button class="btn-apply" onclick="applyActions()">Aplicar</button>
+          <span class="ab-sel-count" id="ab-count" style="display: none"
+            >0 selecionados</span
+          >
+          <button class="btn-whatsapp" onclick="sendPCMWhatsApp()">
+            &#128241; Enviar PCM WhatsApp
+          </button>
+        </div>
+
+        <!-- Q2 – Priorização de Clientes -->
+        <div class="i-card" style="margin-bottom: 18px">
+          <div class="i-card-title">
+            <span class="badge">2</span>
+            Priorização de Clientes — base de contratos
+            <span
+              style="
+                font-weight: 400;
+                text-transform: none;
+                letter-spacing: 0;
+                font-size: 11px;
+                color: var(--muted);
+              "
+              >melhores clientes por produto / valor</span
+            >
+            <span class="count-pill" id="q2-count">15</span>
+          </div>
+          <div style="overflow-x: auto">
+            <table style="font-size: 12px">
+              <thead>
+                <tr>
+                  <th style="width: 32px">
+                    <input
+                      type="checkbox"
+                      class="hdr-check"
+                      id="chk-all-q2"
+                      onclick="toggleAll('q2')"
+                    />
+                  </th>
+                  <th>CPF</th>
+                  <th>Nº Produtos</th>
+                  <th>Valor acumulado</th>
+                  <th>Pré-aprovado</th>
+                  <th>Fila atual</th>
+                  <th>Posição</th>
+                </tr>
+              </thead>
+              <tbody id="client-prio-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Q3 – Automação leve (5h–24h) -->
+        <div class="i-card">
+          <div class="i-card-title">
+            <span class="badge" style="background: var(--danger)">!</span>
+            Automação leve — Leads aguardando (5h–24h · Fila 2)
+            <span class="count-pill" id="q3-count">—</span>
+          </div>
+          <div style="overflow-x: auto">
+            <table style="font-size: 12px">
+              <thead>
+                <tr>
+                  <th style="width: 32px">
+                    <input
+                      type="checkbox"
+                      class="hdr-check"
+                      id="chk-all-q3"
+                      onclick="toggleAll('q3')"
+                    />
+                  </th>
+                  <th>Horas aguardando</th>
+                  <th style="text-align: right">Nº de CPFs</th>
+                  <th>Carteira predominante</th>
+                  <th>Janela</th>
+                </tr>
+              </thead>
+              <tbody id="leads-24h-body"></tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Card 3 – Regras cadastradas -->
-    <div class="card">
-      <div class="card-title">
-        <span class="badge badge-green">✓</span>
-        Regras cadastradas
-        <span class="count-pill" id="rules-count">8</span>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Ator</th>
-              <th>Modelo</th>
-              <th>Plataforma</th>
-              <th>Destino</th>
-              <th>Dineg</th>
-              <th>Região</th>
-              <th>Regional</th>
-              <th>Plataforma</th>
-              <th>Coordenadora</th>
-              <th>Coordenada</th>
-              <th>Carteira</th>
-              <th>Produto</th>
-              <th>Segmento</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="rules-body"></tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ══ INSIGHTS VIEW ═══════════════════════════════════════════════════════ -->
-  <div class="content" id="view-insights" style="display:none">
-    <div class="page-head">
-      <h1>Insights</h1>
-      <p>Base D-1 · Performance de funcionais · Priorização de clientes</p>
-    </div>
-
-    <!-- Q1 – Performance por Funcional -->
-    <div class="i-card" style="margin-bottom:18px">
-      <div class="i-card-title">
-        <span class="badge">1</span>
-        Performance por Funcional — últimos 30 dias
-      </div>
-      <div style="overflow-x:auto">
-        <table style="font-size:12px">
-          <thead>
-            <tr>
-              <th>Funcional</th>
-              <th>Carteira</th>
-              <th>Produto predominante na carteira</th>
-              <th>Mais vendido (30d)</th>
-              <th>Conversão (30d)</th>
-              <th>Leads ativos</th>
-            </tr>
-          </thead>
-          <tbody id="func-perf-body"></tbody>
-        </table>
+    <!-- ══ MODAL BASE ══════════════════════════════════════════════════════════ -->
+    <div
+      id="base-modal"
+      class="modal-overlay"
+      onclick="if (event.target === this) closeBase()"
+    >
+      <div class="modal-panel">
+        <div class="modal-header">
+          <div>
+            <h2 id="modal-title" class="modal-title"></h2>
+            <p id="modal-sub" class="modal-sub"></p>
+          </div>
+          <button
+            class="modal-close"
+            onclick="closeBase()"
+            title="Fechar (Esc)"
+          >
+            ×
+          </button>
+        </div>
+        <div class="modal-search-row">
+          <input
+            id="modal-search"
+            type="text"
+            placeholder="Filtrar registros..."
+            oninput="filterModal()"
+            autocomplete="off"
+          />
+        </div>
+        <div id="modal-count" class="modal-count"></div>
+        <div class="modal-body">
+          <div class="table-wrap">
+            <table>
+              <thead id="modal-thead"></thead>
+              <tbody id="modal-tbody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Barra de ação compartilhada (Q2 + Q3) -->
-    <div class="action-bar">
-      <span class="action-bar-label">Ação em lote</span>
-      <input class="ab-input ab-text"  type="text"   id="act-carteira" placeholder="Nova carteira (01_XXXX)" />
-      <select class="ab-input ab-sel"  id="act-fila">
-        <option value="">Mudar fila…</option>
-        <option value="1">Fila 1</option>
-        <option value="2">Fila 2</option>
-      </select>
-      <input class="ab-input ab-num"  type="number"  id="act-posicao" placeholder="Nova posição" min="1" />
-      <button class="btn-apply" onclick="applyActions()">Aplicar</button>
-      <span class="ab-sel-count" id="ab-count" style="display:none">0 selecionados</span>
-      <button class="btn-whatsapp" onclick="sendPCMWhatsApp()">&#128241; Enviar PCM WhatsApp</button>
-    </div>
+    <script>
+      // ─── BASE DATA ────────────────────────────────────────────────────────────────
 
-    <!-- Q2 – Priorização de Clientes -->
-    <div class="i-card" style="margin-bottom:18px">
-      <div class="i-card-title">
-        <span class="badge">2</span>
-        Priorização de Clientes — base de contratos
-        <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)">melhores clientes por produto / valor</span>
-        <span class="count-pill" id="q2-count">15</span>
-      </div>
-      <div style="overflow-x:auto">
-        <table style="font-size:12px">
-          <thead>
-            <tr>
-              <th style="width:32px"><input type="checkbox" class="hdr-check" id="chk-all-q2" onclick="toggleAll('q2')" /></th>
-              <th>CPF</th>
-              <th>Nº Produtos</th>
-              <th>Valor acumulado</th>
-              <th>Fila atual</th>
-              <th>Posição</th>
-            </tr>
-          </thead>
-          <tbody id="client-prio-body"></tbody>
-        </table>
-      </div>
-    </div>
+      const BASE_DINEG = (() => {
+        const dPool = [10, 15, 25, 31, 42, 54, 63, 77, 88, 96]
+        return Array.from({ length: 100 }, (_, i) => ({
+          dineg: dPool[i % dPool.length],
+          regiao: 1 + ((i * 7) % 9),
+          regional: 1001 + ((i * 19) % 399),
+          plataforma: 6001 + ((i * 23) % 399)
+        }))
+      })()
 
-    <!-- Q3 – +24h na Fila 2 -->
-    <div class="i-card">
-      <div class="i-card-title">
-        <span class="badge" style="background:var(--danger)">!</span>
-        CPFs há +24h na Fila 2
-        <span class="count-pill" id="q3-count">—</span>
-      </div>
-      <div style="overflow-x:auto">
-        <table style="font-size:12px">
-          <thead>
-            <tr>
-              <th style="width:32px"><input type="checkbox" class="hdr-check" id="chk-all-q3" onclick="toggleAll('q3')" /></th>
-              <th>CPF</th>
-              <th>Hrs. na fila</th>
-              <th>Produto</th>
-              <th>Carteira</th>
-              <th>Posição</th>
-            </tr>
-          </thead>
-          <tbody id="leads-24h-body"></tbody>
-        </table>
-      </div>
-    </div>
+      const MODELOS_LIST = ['IAD', 'FISICA', 'IUD', 'SD', 'SDEMP', 'CONECTA']
+      const BASE_COORD = Array.from({ length: 30 }, (_, i) => ({
+        coordenadora: 7001 + i,
+        coordenada: 8001 + ((i * 7) % 90),
+        modelo: MODELOS_LIST[i % MODELOS_LIST.length]
+      }))
 
-  </div>
-</div>
+      const BASE_FUNC = Array.from({ length: 200 }, (_, i) => {
+        const plataforma = 6001 + ((i * 23) % 399)
+        return {
+          funcional: String(100000000 + i * 4500001).padStart(9, '0'),
+          carteira: '01_' + plataforma,
+          plataforma
+        }
+      })
 
-<!-- ══ MODAL BASE ══════════════════════════════════════════════════════════ -->
-<div id="base-modal" class="modal-overlay" onclick="if(event.target===this)closeBase()">
-  <div class="modal-panel">
-    <div class="modal-header">
-      <div>
-        <h2 id="modal-title" class="modal-title"></h2>
-        <p id="modal-sub" class="modal-sub"></p>
-      </div>
-      <button class="modal-close" onclick="closeBase()" title="Fechar (Esc)">×</button>
-    </div>
-    <div class="modal-search-row">
-      <input id="modal-search" type="text" placeholder="Filtrar registros..." oninput="filterModal()" autocomplete="off" />
-    </div>
-    <div id="modal-count" class="modal-count"></div>
-    <div class="modal-body">
-      <div class="table-wrap">
-        <table>
-          <thead id="modal-thead"></thead>
-          <tbody id="modal-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+      // ─── AUTOCOMPLETE ─────────────────────────────────────────────────────────────
 
-<script>
-// ─── BASE DATA ────────────────────────────────────────────────────────────────
+      function uniq(arr) {
+        return [...new Set(arr)].sort((a, b) =>
+          typeof a === 'number' ? a - b : String(a).localeCompare(String(b))
+        )
+      }
 
-const BASE_DINEG = (() => {
-  const dPool = [10,15,25,31,42,54,63,77,88,96];
-  return Array.from({length:100}, (_, i) => ({
-    dineg:      dPool[i % dPool.length],
-    regiao:     1 + (i * 7 % 9),
-    regional:   1001 + (i * 19 % 399),
-    plataforma: 6001 + (i * 23 % 399)
-  }));
-})();
+      function setDl(id, vals) {
+        document.getElementById(id).innerHTML = vals
+          .map(v => `<option value="${v}">`)
+          .join('')
+      }
 
-const MODELOS_LIST = ['IAD','FISICA','IUD','SD','SDEMP','CONECTA'];
-const BASE_COORD = Array.from({length:30}, (_, i) => ({
-  coordenadora: 7001 + i,
-  coordenada:   8001 + (i * 7 % 90),
-  modelo:       MODELOS_LIST[i % MODELOS_LIST.length]
-}));
+      function initAllDl() {
+        setDl('dl-dineg', uniq(BASE_DINEG.map(r => r.dineg)))
+        setDl('dl-regiao', uniq(BASE_DINEG.map(r => r.regiao)))
+        setDl('dl-regional', uniq(BASE_DINEG.map(r => r.regional)))
+        setDl('dl-plataforma', uniq(BASE_DINEG.map(r => r.plataforma)))
+        setDl('dl-coordenadora', uniq(BASE_COORD.map(r => r.coordenadora)))
+        setDl('dl-coordenada', uniq(BASE_COORD.map(r => r.coordenada)))
+        setDl('dl-carteira', uniq(BASE_FUNC.map(r => r.carteira)))
+        setDl('dl-funcional', uniq(BASE_FUNC.map(r => r.funcional)))
+      }
 
-const BASE_FUNC = Array.from({length:200}, (_, i) => {
-  const plataforma = 6001 + (i * 23 % 399);
-  return {
-    funcional:  String(100000000 + i * 4500001).padStart(9,'0'),
-    carteira:   '01_' + plataforma,
-    plataforma
-  };
-});
+      document.getElementById('f-dineg').addEventListener('input', function () {
+        const v = Number(this.value)
+        const m = BASE_DINEG.filter(r => r.dineg === v)
+        if (m.length) {
+          setDl('dl-regiao', uniq(m.map(r => r.regiao)))
+          setDl('dl-regional', uniq(m.map(r => r.regional)))
+          setDl('dl-plataforma', uniq(m.map(r => r.plataforma)))
+        } else {
+          initAllDl()
+        }
+      })
 
-// ─── AUTOCOMPLETE ─────────────────────────────────────────────────────────────
+      document
+        .getElementById('f-regiao')
+        .addEventListener('input', function () {
+          const v = Number(this.value)
+          const m = BASE_DINEG.filter(r => r.regiao === v)
+          if (m.length) {
+            setDl('dl-regional', uniq(m.map(r => r.regional)))
+            setDl('dl-plataforma', uniq(m.map(r => r.plataforma)))
+          }
+        })
 
-function uniq(arr) {
-  return [...new Set(arr)].sort((a,b) => typeof a === 'number' ? a - b : String(a).localeCompare(String(b)));
-}
+      document
+        .getElementById('f-regional')
+        .addEventListener('input', function () {
+          const v = Number(this.value)
+          const m = BASE_DINEG.filter(r => r.regional === v)
+          if (m.length) {
+            setDl('dl-plataforma', uniq(m.map(r => r.plataforma)))
+          }
+        })
 
-function setDl(id, vals) {
-  document.getElementById(id).innerHTML = vals.map(v => `<option value="${v}">`).join('');
-}
+      document
+        .getElementById('f-coordenadora')
+        .addEventListener('input', function () {
+          const v = Number(this.value)
+          const m = BASE_COORD.filter(r => r.coordenadora === v)
+          if (m.length) {
+            setDl('dl-coordenada', uniq(m.map(r => r.coordenada)))
+          }
+        })
 
-function initAllDl() {
-  setDl('dl-dineg',        uniq(BASE_DINEG.map(r => r.dineg)));
-  setDl('dl-regiao',       uniq(BASE_DINEG.map(r => r.regiao)));
-  setDl('dl-regional',     uniq(BASE_DINEG.map(r => r.regional)));
-  setDl('dl-plataforma',   uniq(BASE_DINEG.map(r => r.plataforma)));
-  setDl('dl-coordenadora', uniq(BASE_COORD.map(r => r.coordenadora)));
-  setDl('dl-coordenada',   uniq(BASE_COORD.map(r => r.coordenada)));
-  setDl('dl-carteira',     uniq(BASE_FUNC.map(r => r.carteira)));
-  setDl('dl-funcional',    uniq(BASE_FUNC.map(r => r.funcional)));
-}
+      document
+        .getElementById('f-plataforma')
+        .addEventListener('input', function () {
+          const v = Number(this.value)
+          const m = BASE_FUNC.filter(r => r.plataforma === v)
+          if (m.length) {
+            setDl('dl-carteira', uniq(m.map(r => r.carteira)))
+            setDl('dl-funcional', uniq(m.map(r => r.funcional)))
+          }
+        })
 
-document.getElementById('f-dineg').addEventListener('input', function() {
-  const v = Number(this.value);
-  const m = BASE_DINEG.filter(r => r.dineg === v);
-  if (m.length) {
-    setDl('dl-regiao',    uniq(m.map(r => r.regiao)));
-    setDl('dl-regional',  uniq(m.map(r => r.regional)));
-    setDl('dl-plataforma',uniq(m.map(r => r.plataforma)));
-  } else {
-    initAllDl();
-  }
-});
+      // ─── MODAL ────────────────────────────────────────────────────────────────────
 
-document.getElementById('f-regiao').addEventListener('input', function() {
-  const v = Number(this.value);
-  const m = BASE_DINEG.filter(r => r.regiao === v);
-  if (m.length) {
-    setDl('dl-regional',   uniq(m.map(r => r.regional)));
-    setDl('dl-plataforma', uniq(m.map(r => r.plataforma)));
-  }
-});
+      const BASES = {
+        dineg: {
+          title: 'Tabela Dineg',
+          sub: '100 registros · fonte: DW / AWS',
+          cols: ['#', 'Dineg', 'Região', 'Regional', 'Plataforma'],
+          rows: () =>
+            BASE_DINEG.map((r, i) => [
+              i + 1,
+              r.dineg,
+              r.regiao,
+              r.regional,
+              r.plataforma
+            ])
+        },
+        coord: {
+          title: 'Base Coordenadora',
+          sub: '30 registros · fonte: Dynamics 365',
+          cols: ['#', 'Coordenadora', 'Coordenada', 'Modelo'],
+          rows: () =>
+            BASE_COORD.map((r, i) => [
+              i + 1,
+              r.coordenadora,
+              r.coordenada,
+              r.modelo
+            ])
+        },
+        func: {
+          title: 'Base Funcional',
+          sub: '200 registros · fonte: SIRHH',
+          cols: ['#', 'Funcional', 'Carteira'],
+          rows: () => BASE_FUNC.map((r, i) => [i + 1, r.funcional, r.carteira])
+        },
+        leads: {
+          title: 'Lead / Oferta',
+          sub: '500 registros · base ativa de leads',
+          cols: [
+            '#',
+            'Produto',
+            'CPF',
+            'Carteira',
+            'Plataforma',
+            'Seg.',
+            'Fila',
+            'Posição',
+            'Hrs. fila'
+          ],
+          rows: () =>
+            BASE_LEADS.map((r, i) => [
+              i + 1,
+              r.produto,
+              r.cpf,
+              r.carteira,
+              r.plataforma,
+              r.segmento,
+              'Fila ' + r.fila,
+              '#' + r.prioridade,
+              r.horasNaFila + 'h'
+            ])
+        }
+      }
 
-document.getElementById('f-regional').addEventListener('input', function() {
-  const v = Number(this.value);
-  const m = BASE_DINEG.filter(r => r.regional === v);
-  if (m.length) {
-    setDl('dl-plataforma', uniq(m.map(r => r.plataforma)));
-  }
-});
+      let _modalAllRows = []
 
-document.getElementById('f-coordenadora').addEventListener('input', function() {
-  const v = Number(this.value);
-  const m = BASE_COORD.filter(r => r.coordenadora === v);
-  if (m.length) {
-    setDl('dl-coordenada', uniq(m.map(r => r.coordenada)));
-  }
-});
+      function openBase(name) {
+        const def = BASES[name]
+        document.getElementById('modal-title').textContent = def.title
+        document.getElementById('modal-sub').textContent = def.sub
+        document.getElementById('modal-search').value = ''
+        document.getElementById('modal-thead').innerHTML =
+          '<tr>' + def.cols.map(c => `<th>${c}</th>`).join('') + '</tr>'
+        _modalAllRows = def.rows()
+        renderModalRows(_modalAllRows)
+        document.getElementById('base-modal').classList.add('open')
+        setTimeout(() => document.getElementById('modal-search').focus(), 80)
+      }
 
-document.getElementById('f-plataforma').addEventListener('input', function() {
-  const v = Number(this.value);
-  const m = BASE_FUNC.filter(r => r.plataforma === v);
-  if (m.length) {
-    setDl('dl-carteira',  uniq(m.map(r => r.carteira)));
-    setDl('dl-funcional', uniq(m.map(r => r.funcional)));
-  }
-});
+      function closeBase() {
+        document.getElementById('base-modal').classList.remove('open')
+      }
 
-// ─── MODAL ────────────────────────────────────────────────────────────────────
+      function renderModalRows(rows) {
+        const total = _modalAllRows.length
+        document.getElementById('modal-count').textContent =
+          rows.length === total
+            ? `${total} registros`
+            : `${rows.length} de ${total} registros`
+        document.getElementById('modal-tbody').innerHTML = rows.length
+          ? rows
+              .map(
+                row => '<tr>' + row.map(v => `<td>${v}</td>`).join('') + '</tr>'
+              )
+              .join('')
+          : '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted)">Nenhum registro encontrado</td></tr>'
+      }
 
-const BASES = {
-  dineg: {
-    title: 'Tabela Dineg',
-    sub:   '100 registros · fonte: DW / AWS',
-    cols:  ['#', 'Dineg', 'Região', 'Regional', 'Plataforma'],
-    rows:  () => BASE_DINEG.map((r,i) => [i+1, r.dineg, r.regiao, r.regional, r.plataforma])
-  },
-  coord: {
-    title: 'Base Coordenadora',
-    sub:   '30 registros · fonte: Dynamics 365',
-    cols:  ['#', 'Coordenadora', 'Coordenada', 'Modelo'],
-    rows:  () => BASE_COORD.map((r,i) => [i+1, r.coordenadora, r.coordenada, r.modelo])
-  },
-  func: {
-    title: 'Base Funcional',
-    sub:   '200 registros · fonte: SIRHH',
-    cols:  ['#', 'Funcional', 'Carteira'],
-    rows:  () => BASE_FUNC.map((r,i) => [i+1, r.funcional, r.carteira])
-  },
-  leads: {
-    title: 'Lead / Oferta',
-    sub:   '500 registros · base ativa de leads',
-    cols:  ['#', 'Produto', 'CPF', 'Carteira', 'Plataforma', 'Seg.', 'Fila', 'Posição', 'Hrs. fila'],
-    rows:  () => BASE_LEADS.map((r,i) => [i+1, r.produto, r.cpf, r.carteira, r.plataforma, r.segmento, 'Fila '+r.fila, '#'+r.prioridade, r.horasNaFila+'h'])
-  }
-};
+      function filterModal() {
+        const q = document
+          .getElementById('modal-search')
+          .value.toLowerCase()
+          .trim()
+        const filtered = q
+          ? _modalAllRows.filter(row =>
+              row.some(v => String(v).toLowerCase().includes(q))
+            )
+          : _modalAllRows
+        renderModalRows(filtered)
+      }
 
-let _modalAllRows = [];
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeBase()
+      })
 
-function openBase(name) {
-  const def = BASES[name];
-  document.getElementById('modal-title').textContent = def.title;
-  document.getElementById('modal-sub').textContent   = def.sub;
-  document.getElementById('modal-search').value      = '';
-  document.getElementById('modal-thead').innerHTML   =
-    '<tr>' + def.cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
-  _modalAllRows = def.rows();
-  renderModalRows(_modalAllRows);
-  document.getElementById('base-modal').classList.add('open');
-  setTimeout(() => document.getElementById('modal-search').focus(), 80);
-}
+      // ─── RULES ────────────────────────────────────────────────────────────────────
 
-function closeBase() {
-  document.getElementById('base-modal').classList.remove('open');
-}
+      let rules = [
+        {
+          ator: 'Iclientes',
+          modelo: 'IAD',
+          plat_canal: '',
+          destino: 'Lead · Oferta',
+          dineg: '10',
+          regiao: '1',
+          regional: '',
+          plataforma: '',
+          coordenadora: '',
+          coordenada: '',
+          carteira: '',
+          produto: '',
+          segmento: '',
+          conditions: [
+            {
+              operator: 'SE',
+              funcionais: ['111222333', '444555666', '777888999', '222333444'],
+              carteira: '02_6001',
+              plataforma: '',
+              produto: ''
+            }
+          ]
+        },
+        {
+          ator: 'ION',
+          modelo: 'FISICA',
+          plat_canal: '6024',
+          destino: 'Oferta',
+          dineg: '',
+          regiao: '',
+          regional: '1002',
+          plataforma: '',
+          coordenadora: '7003',
+          coordenada: '',
+          carteira: '',
+          produto: 'Conta Corrente',
+          segmento: '3',
+          conditions: []
+        },
+        {
+          ator: 'GM',
+          modelo: 'IUD',
+          plat_canal: '',
+          destino: 'Lead',
+          dineg: '25',
+          regiao: '',
+          regional: '',
+          plataforma: '6005',
+          coordenadora: '',
+          coordenada: '',
+          carteira: '01_6005',
+          produto: '',
+          segmento: '',
+          conditions: []
+        },
+        {
+          ator: 'Central',
+          modelo: 'SD',
+          plat_canal: '',
+          destino: 'Lead · Oferta',
+          dineg: '',
+          regiao: '4',
+          regional: '',
+          plataforma: '',
+          coordenadora: '',
+          coordenada: '',
+          carteira: '',
+          produto: 'LCI',
+          segmento: '4',
+          conditions: []
+        },
+        {
+          ator: 'Iclientes',
+          modelo: 'SDEMP',
+          plat_canal: '6047',
+          destino: 'Oferta',
+          dineg: '42',
+          regiao: '5',
+          regional: '5001',
+          plataforma: '',
+          coordenadora: '7008',
+          coordenada: '8012',
+          carteira: '',
+          produto: '',
+          segmento: '5',
+          conditions: []
+        },
+        {
+          ator: 'ION',
+          modelo: 'CONECTA',
+          plat_canal: '',
+          destino: 'Lead',
+          dineg: '',
+          regiao: '',
+          regional: '',
+          plataforma: '6011',
+          coordenadora: '7011',
+          coordenada: '',
+          carteira: '01_6011',
+          produto: '',
+          segmento: '',
+          conditions: []
+        },
+        {
+          ator: 'GM',
+          modelo: 'IAD',
+          plat_canal: '',
+          destino: 'Lead · Oferta',
+          dineg: '63',
+          regiao: '',
+          regional: '',
+          plataforma: '',
+          coordenadora: '',
+          coordenada: '',
+          carteira: '',
+          produto: 'CDB',
+          segmento: '3',
+          conditions: []
+        },
+        {
+          ator: 'Central',
+          modelo: 'FISICA',
+          plat_canal: '',
+          destino: 'Lead · Oferta',
+          dineg: '88',
+          regiao: '9',
+          regional: '',
+          plataforma: '',
+          coordenadora: '',
+          coordenada: '',
+          carteira: '',
+          produto: 'Previdência Privada',
+          segmento: '2',
+          conditions: []
+        }
+      ]
 
-function renderModalRows(rows) {
-  const total = _modalAllRows.length;
-  document.getElementById('modal-count').textContent =
-    rows.length === total
-      ? `${total} registros`
-      : `${rows.length} de ${total} registros`;
-  document.getElementById('modal-tbody').innerHTML =
-    rows.length
-      ? rows.map(row => '<tr>' + row.map(v => `<td>${v}</td>`).join('') + '</tr>').join('')
-      : '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted)">Nenhum registro encontrado</td></tr>';
-}
+      const KEYS = [
+        'dineg',
+        'regiao',
+        'regional',
+        'plataforma',
+        'coordenadora',
+        'coordenada',
+        'carteira',
+        'produto',
+        'segmento'
+      ]
 
-function filterModal() {
-  const q = document.getElementById('modal-search').value.toLowerCase().trim();
-  const filtered = q
-    ? _modalAllRows.filter(row => row.some(v => String(v).toLowerCase().includes(q)))
-    : _modalAllRows;
-  renderModalRows(filtered);
-}
+      function cell(v) {
+        return v ? `<td>${v}</td>` : `<td class="empty-cell">—</td>`
+      }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBase(); });
+      function renderRules() {
+        document.getElementById('rules-count').textContent = rules.length
+        const tbody = document.getElementById('rules-body')
 
-// ─── RULES ────────────────────────────────────────────────────────────────────
+        if (!rules.length) {
+          tbody.innerHTML = `<tr><td colspan="15"><div class="empty-state">Nenhuma regra cadastrada. Selecione Ator, Modelo e clique em +.</div></td></tr>`
+          updateSEIdSelect()
+          return
+        }
 
-let rules = [
-  { ator:'Iclientes', modelo:'IAD',     plat_canal:'',     destino:'Lead · Oferta', dineg:'10', regiao:'1',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     carteira:'',        produto:'',                   segmento:'', conditions:[{ operator:'SE', funcionais:['111222333','444555666','777888999','222333444'], carteira:'02_6001', plataforma:'', produto:'' }] },
-  { ator:'ION',       modelo:'FISICA',  plat_canal:'6024', destino:'Oferta',        dineg:'',   regiao:'',   regional:'1002', plataforma:'',     coordenadora:'7003', coordenada:'',     carteira:'',        produto:'Conta Corrente',     segmento:'3', conditions:[] },
-  { ator:'GM',        modelo:'IUD',     plat_canal:'',     destino:'Lead',          dineg:'25', regiao:'',   regional:'',     plataforma:'6005', coordenadora:'',     coordenada:'',     carteira:'01_6005', produto:'',                   segmento:'',  conditions:[] },
-  { ator:'Central',   modelo:'SD',      plat_canal:'',     destino:'Lead · Oferta', dineg:'',   regiao:'4',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     carteira:'',        produto:'LCI',                segmento:'4', conditions:[] },
-  { ator:'Iclientes', modelo:'SDEMP',   plat_canal:'6047', destino:'Oferta',        dineg:'42', regiao:'5',  regional:'5001', plataforma:'',     coordenadora:'7008', coordenada:'8012', carteira:'',        produto:'',                   segmento:'5', conditions:[] },
-  { ator:'ION',       modelo:'CONECTA', plat_canal:'',     destino:'Lead',          dineg:'',   regiao:'',   regional:'',     plataforma:'6011', coordenadora:'7011', coordenada:'',     carteira:'01_6011', produto:'',                   segmento:'',  conditions:[] },
-  { ator:'GM',        modelo:'IAD',     plat_canal:'',     destino:'Lead · Oferta', dineg:'63', regiao:'',   regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     carteira:'',        produto:'CDB',                segmento:'3', conditions:[] },
-  { ator:'Central',   modelo:'FISICA',  plat_canal:'',     destino:'Lead · Oferta', dineg:'88', regiao:'9',  regional:'',     plataforma:'',     coordenadora:'',     coordenada:'',     carteira:'',        produto:'Previdência Privada', segmento:'2', conditions:[] },
-];
-
-const KEYS = ['dineg','regiao','regional','plataforma','coordenadora','coordenada','carteira','produto','segmento'];
-
-function cell(v) {
-  return v ? `<td>${v}</td>` : `<td class="empty-cell">—</td>`;
-}
-
-function renderRules() {
-  document.getElementById('rules-count').textContent = rules.length;
-  const tbody = document.getElementById('rules-body');
-
-  if (!rules.length) {
-    tbody.innerHTML = `<tr><td colspan="15"><div class="empty-state">Nenhuma regra cadastrada. Selecione Ator, Modelo e clique em +.</div></td></tr>`;
-    updateSEIdSelect();
-    return;
-  }
-
-  let html = '';
-  rules.forEach((r, i) => {
-    html += `
+        let html = ''
+        rules.forEach((r, i) => {
+          html += `
       <tr>
         <td>${i + 1}</td>
         <td><span class="tag tag-orange">${r.ator}</span></td>
@@ -1703,28 +2617,34 @@ function renderRules() {
         ${cell(r.coordenadora)}${cell(r.coordenada)}
         ${cell(r.carteira)}${cell(r.produto)}${cell(r.segmento)}
         <td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center;align-items:center"><button class="btn-edit" onclick="editRule(${i})" title="Editar">✎</button><button class="btn-remove" onclick="removeRule(${i})" title="Remover">−</button></div></td>
-      </tr>`;
+      </tr>`
 
-    const conds = r.conditions || [];
-    conds.forEach((cond, ci) => {
-      const isLast = ci === conds.length - 1;
-      const chips = cond.funcionais.map(f => `<span class="se-func-chip">${f}</span>`).join(' ');
-      const parts = [];
-      if (cond.carteira)   parts.push(`carteira: <strong>${cond.carteira}</strong>`);
-      if (cond.plataforma) parts.push(`plataforma: <strong>${cond.plataforma}</strong>`);
-      if (cond.produto)    parts.push(`produto: <strong>${cond.produto}</strong>`);
-      const resultStr = parts.join(' · ') || '—';
-      const op = cond.operator || 'SE';
-      const opBadge = op === 'OU'
-        ? `<span class="badge-ou">OU</span>`
-        : op === 'E'
-          ? `<span class="badge-e">E</span>`
-          : `<span class="badge-se">SE</span>`;
-      const negStr = cond.carteira
-        ? `demais colaboradores — carteira ${cond.carteira} não visível`
-        : `demais colaboradores — condição padrão aplicada`;
+          const conds = r.conditions || []
+          conds.forEach((cond, ci) => {
+            const isLast = ci === conds.length - 1
+            const chips = cond.funcionais
+              .map(f => `<span class="se-func-chip">${f}</span>`)
+              .join(' ')
+            const parts = []
+            if (cond.carteira)
+              parts.push(`carteira: <strong>${cond.carteira}</strong>`)
+            if (cond.plataforma)
+              parts.push(`plataforma: <strong>${cond.plataforma}</strong>`)
+            if (cond.produto)
+              parts.push(`produto: <strong>${cond.produto}</strong>`)
+            const resultStr = parts.join(' · ') || '—'
+            const op = cond.operator || 'SE'
+            const opBadge =
+              op === 'OU'
+                ? `<span class="badge-ou">OU</span>`
+                : op === 'E'
+                  ? `<span class="badge-e">E</span>`
+                  : `<span class="badge-se">SE</span>`
+            const negStr = cond.carteira
+              ? `demais colaboradores — carteira ${cond.carteira} não visível`
+              : `demais colaboradores — condição padrão aplicada`
 
-      html += `
+            html += `
         <tr class="row-se">
           <td class="indent-arrow">↳</td>
           <td colspan="13"><div class="se-condition-text">
@@ -1734,10 +2654,10 @@ function renderRules() {
             <span class="se-result">${resultStr}</span>
           </div></td>
           <td><button class="btn-remove-cond" onclick="removeCondition(${i},${ci})" title="Remover exceção">−</button></td>
-        </tr>`;
+        </tr>`
 
-      if (isLast) {
-        html += `
+            if (isLast) {
+              html += `
         <tr class="row-senao">
           <td class="indent-arrow">↳</td>
           <td colspan="13"><div class="se-condition-text">
@@ -1745,106 +2665,156 @@ function renderRules() {
             ${negStr}
           </div></td>
           <td></td>
-        </tr>`;
+        </tr>`
+            }
+          })
+        })
+
+        tbody.innerHTML = html
+        updateSEIdSelect()
       }
-    });
-  });
 
-  tbody.innerHTML = html;
-  updateSEIdSelect();
-}
+      let _editIndex = -1
+      let _seRows = [
+        { op: 'SE', funcionais: '', carteira: '', plataforma: '', produto: '' }
+      ]
 
-let _editIndex = -1;
-let _seRows    = [{ op:'SE', funcionais:'', carteira:'', plataforma:'', produto:'' }];
+      function removeRule(i) {
+        rules.splice(i, 1)
+        renderRules()
+      }
+      function removeCondition(ri, ci) {
+        rules[ri].conditions.splice(ci, 1)
+        renderRules()
+      }
 
-function removeRule(i) { rules.splice(i, 1); renderRules(); }
-function removeCondition(ri, ci) { rules[ri].conditions.splice(ci, 1); renderRules(); }
+      function editRule(i) {
+        const r = rules[i]
+        document.getElementById('sel-ator').value = r.ator
+        document.getElementById('sel-modelo').disabled = false
+        document.getElementById('sel-modelo').value = r.modelo
+        document.getElementById('sel-plataforma').value = r.plat_canal || ''
+        KEYS.forEach(k => {
+          document.getElementById('f-' + k).value = r[k] || ''
+        })
+        document.getElementById('chk-lead').checked =
+          !r.destino || r.destino.includes('Lead')
+        document.getElementById('chk-oferta').checked =
+          !r.destino || r.destino.includes('Oferta')
+        _editIndex = i
+        const btn = document.getElementById('btn-add')
+        btn.disabled = false
+        btn.textContent = '✎'
+        btn.style.background = '#1D4ED8'
+        document.getElementById('btn-cancel-edit').style.display = ''
+        document
+          .querySelector('.content .card:nth-child(2)')
+          .scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
 
-function editRule(i) {
-  const r = rules[i];
-  document.getElementById('sel-ator').value    = r.ator;
-  document.getElementById('sel-modelo').disabled = false;
-  document.getElementById('sel-modelo').value  = r.modelo;
-  document.getElementById('sel-plataforma').value = r.plat_canal || '';
-  KEYS.forEach(k => { document.getElementById('f-' + k).value = r[k] || ''; });
-  document.getElementById('chk-lead').checked   = !r.destino || r.destino.includes('Lead');
-  document.getElementById('chk-oferta').checked = !r.destino || r.destino.includes('Oferta');
-  _editIndex = i;
-  const btn = document.getElementById('btn-add');
-  btn.disabled = false;
-  btn.textContent = '✎';
-  btn.style.background = '#1D4ED8';
-  document.getElementById('btn-cancel-edit').style.display = '';
-  document.querySelector('.content .card:nth-child(2)').scrollIntoView({ behavior:'smooth', block:'start' });
-}
+      function cancelEdit() {
+        _editIndex = -1
+        const btn = document.getElementById('btn-add')
+        btn.textContent = '+'
+        btn.style.background = ''
+        btn.disabled = !(
+          document.getElementById('sel-ator').value &&
+          document.getElementById('sel-modelo').value
+        )
+        document.getElementById('btn-cancel-edit').style.display = 'none'
+        clearCriteria()
+      }
 
-function cancelEdit() {
-  _editIndex = -1;
-  const btn = document.getElementById('btn-add');
-  btn.textContent = '+';
-  btn.style.background = '';
-  btn.disabled = !(document.getElementById('sel-ator').value && document.getElementById('sel-modelo').value);
-  document.getElementById('btn-cancel-edit').style.display = 'none';
-  clearCriteria();
-}
+      function _getDestino() {
+        const lead = document.getElementById('chk-lead').checked
+        const oferta = document.getElementById('chk-oferta').checked
+        if (lead && oferta) return 'Lead · Oferta'
+        if (lead) return 'Lead'
+        if (oferta) return 'Oferta'
+        return ''
+      }
 
-function _getDestino() {
-  const lead   = document.getElementById('chk-lead').checked;
-  const oferta = document.getElementById('chk-oferta').checked;
-  if (lead && oferta) return 'Lead · Oferta';
-  if (lead)   return 'Lead';
-  if (oferta) return 'Oferta';
-  return '';
-}
+      function onDestinoChange() {
+        const valid =
+          document.getElementById('chk-lead').checked ||
+          document.getElementById('chk-oferta').checked
+        document
+          .getElementById('chk-group')
+          .classList.toggle('check-group-err', !valid)
+        const btn = document.getElementById('btn-add')
+        btn.disabled = !(
+          document.getElementById('sel-ator').value &&
+          document.getElementById('sel-modelo').value &&
+          valid
+        )
+      }
 
-function onDestinoChange() {
-  const valid = document.getElementById('chk-lead').checked || document.getElementById('chk-oferta').checked;
-  document.getElementById('chk-group').classList.toggle('check-group-err', !valid);
-  const btn = document.getElementById('btn-add');
-  btn.disabled = !(document.getElementById('sel-ator').value && document.getElementById('sel-modelo').value && valid);
-}
+      function addRule() {
+        const lead = document.getElementById('chk-lead').checked
+        const oferta = document.getElementById('chk-oferta').checked
+        if (!lead && !oferta) {
+          document.getElementById('chk-group').classList.add('check-group-err')
+          return
+        }
+        const ator = document.getElementById('sel-ator').value
+        const modelo = document.getElementById('sel-modelo').value
+        const plat_canal = document
+          .getElementById('sel-plataforma')
+          .value.trim()
+        const destino = _getDestino()
+        const fields = {}
+        KEYS.forEach(k => {
+          fields[k] = document.getElementById('f-' + k).value.trim()
+        })
 
-function addRule() {
-  const lead   = document.getElementById('chk-lead').checked;
-  const oferta = document.getElementById('chk-oferta').checked;
-  if (!lead && !oferta) { document.getElementById('chk-group').classList.add('check-group-err'); return; }
-  const ator       = document.getElementById('sel-ator').value;
-  const modelo     = document.getElementById('sel-modelo').value;
-  const plat_canal = document.getElementById('sel-plataforma').value.trim();
-  const destino    = _getDestino();
-  const fields = {};
-  KEYS.forEach(k => { fields[k] = document.getElementById('f-' + k).value.trim(); });
+        if (_editIndex >= 0) {
+          Object.assign(rules[_editIndex], {
+            ator,
+            modelo,
+            plat_canal,
+            destino,
+            ...fields
+          })
+          _editIndex = -1
+          document.getElementById('btn-cancel-edit').style.display = 'none'
+        } else {
+          rules.push({
+            ator,
+            modelo,
+            plat_canal,
+            destino,
+            ...fields,
+            conditions: []
+          })
+        }
+        renderRules()
+        const btn = document.getElementById('btn-add')
+        btn.textContent = '✓'
+        btn.style.background = 'var(--success)'
+        setTimeout(() => {
+          btn.textContent = '+'
+          btn.style.background = ''
+        }, 1100)
+      }
 
-  if (_editIndex >= 0) {
-    Object.assign(rules[_editIndex], { ator, modelo, plat_canal, destino, ...fields });
-    _editIndex = -1;
-    document.getElementById('btn-cancel-edit').style.display = 'none';
-  } else {
-    rules.push({ ator, modelo, plat_canal, destino, ...fields, conditions: [] });
-  }
-  renderRules();
-  const btn = document.getElementById('btn-add');
-  btn.textContent = '✓';
-  btn.style.background = 'var(--success)';
-  setTimeout(() => { btn.textContent = '+'; btn.style.background = ''; }, 1100);
-}
-
-function renderSeRows() {
-  const c = document.getElementById('se-rows-container');
-  if (!c) return;
-  let html = '';
-  _seRows.forEach((row, i) => {
-    if (i > 0) {
-      const cls = row.op === 'OU' ? 'badge-ou' : 'badge-e';
-      html += `<div class="se-row-sep"><span class="${cls}">${row.op}</span></div>`;
-    }
-    html += `
+      function renderSeRows() {
+        const c = document.getElementById('se-rows-container')
+        if (!c) return
+        let html = ''
+        _seRows.forEach((row, i) => {
+          if (i > 0) {
+            const cls = row.op === 'OU' ? 'badge-ou' : 'badge-e'
+            html += `<div class="se-row-sep"><span class="${cls}">${row.op}</span></div>`
+          }
+          html += `
       <div class="se-row">
         <div class="se-row-header">
           ${i === 0 ? '<span class="badge-se">SE</span>' : '<span></span>'}
-          ${_seRows.length > 1
-            ? `<button class="btn-remove-cond" onclick="removeSeRow(${i})" title="Remover">−</button>`
-            : '<span></span>'}
+          ${
+            _seRows.length > 1
+              ? `<button class="btn-remove-cond" onclick="removeSeRow(${i})" title="Remover">−</button>`
+              : '<span></span>'
+          }
         </div>
         <div class="se-row-grid">
           <div class="field">
@@ -1864,183 +2834,248 @@ function renderSeRows() {
             <input type="text" id="se-prod-${i}" autocomplete="off" value="${row.produto}" />
           </div>
         </div>
-      </div>`;
-  });
-  c.innerHTML = html;
-}
+      </div>`
+        })
+        c.innerHTML = html
+      }
 
-function _syncSeRows() {
-  _seRows.forEach((row, i) => {
-    const f  = document.getElementById(`se-func-${i}`);
-    const ca = document.getElementById(`se-cart-${i}`);
-    const pl = document.getElementById(`se-plat-${i}`);
-    const pr = document.getElementById(`se-prod-${i}`);
-    if (f)  row.funcionais  = f.value;
-    if (ca) row.carteira    = ca.value;
-    if (pl) row.plataforma  = pl.value;
-    if (pr) row.produto     = pr.value;
-  });
-}
+      function _syncSeRows() {
+        _seRows.forEach((row, i) => {
+          const f = document.getElementById(`se-func-${i}`)
+          const ca = document.getElementById(`se-cart-${i}`)
+          const pl = document.getElementById(`se-plat-${i}`)
+          const pr = document.getElementById(`se-prod-${i}`)
+          if (f) row.funcionais = f.value
+          if (ca) row.carteira = ca.value
+          if (pl) row.plataforma = pl.value
+          if (pr) row.produto = pr.value
+        })
+      }
 
-function addSeRow(op) {
-  _syncSeRows();
-  _seRows.push({ op, funcionais:'', carteira:'', plataforma:'', produto:'' });
-  renderSeRows();
-  setTimeout(() => {
-    const inp = document.getElementById(`se-func-${_seRows.length - 1}`);
-    if (inp) inp.focus();
-  }, 40);
-}
+      function addSeRow(op) {
+        _syncSeRows()
+        _seRows.push({
+          op,
+          funcionais: '',
+          carteira: '',
+          plataforma: '',
+          produto: ''
+        })
+        renderSeRows()
+        setTimeout(() => {
+          const inp = document.getElementById(`se-func-${_seRows.length - 1}`)
+          if (inp) inp.focus()
+        }, 40)
+      }
 
-function removeSeRow(idx) {
-  _syncSeRows();
-  _seRows.splice(idx, 1);
-  renderSeRows();
-}
+      function removeSeRow(idx) {
+        _syncSeRows()
+        _seRows.splice(idx, 1)
+        renderSeRows()
+      }
 
-function clearCriteria() {
-  KEYS.forEach(k => { document.getElementById('f-' + k).value = ''; });
-  initAllDl();
-}
+      function clearCriteria() {
+        KEYS.forEach(k => {
+          document.getElementById('f-' + k).value = ''
+        })
+        initAllDl()
+      }
 
-function toggleSE() {
-  const panel = document.getElementById('se-panel');
-  const caret = document.getElementById('se-caret');
-  const open  = panel.style.display !== 'none';
-  panel.style.display = open ? 'none' : 'block';
-  caret.textContent   = open ? '▶' : '▼';
-  if (!open) { updateSEIdSelect(); renderSeRows(); }
-}
+      function toggleSE() {
+        const panel = document.getElementById('se-panel')
+        const caret = document.getElementById('se-caret')
+        const open = panel.style.display !== 'none'
+        panel.style.display = open ? 'none' : 'block'
+        caret.textContent = open ? '▶' : '▼'
+        if (!open) {
+          updateSEIdSelect()
+          renderSeRows()
+        }
+      }
 
-function updateSEIdSelect() {
-  const sel  = document.getElementById('se-id');
-  const prev = sel.value;
-  sel.innerHTML = '<option value="">Selecione a regra...</option>' +
-    rules.map((r, i) => `<option value="${i+1}">#${i+1} — ${r.ator} / ${r.modelo}</option>`).join('');
-  if (rules.some((_, i) => String(i + 1) === prev)) sel.value = prev;
-}
+      function updateSEIdSelect() {
+        const sel = document.getElementById('se-id')
+        const prev = sel.value
+        sel.innerHTML =
+          '<option value="">Selecione a regra...</option>' +
+          rules
+            .map(
+              (r, i) =>
+                `<option value="${i + 1}">#${i + 1} — ${r.ator} / ${r.modelo}</option>`
+            )
+            .join('')
+        if (rules.some((_, i) => String(i + 1) === prev)) sel.value = prev
+      }
 
-function addCondition() {
-  const idVal = document.getElementById('se-id').value;
-  if (!idVal) { alert('Selecione a regra de referência.'); return; }
-  _syncSeRows();
-  if (!_seRows[0].funcionais.trim()) { alert('Informe ao menos um funcional na primeira condição.'); return; }
-  for (let i = 0; i < _seRows.length; i++) {
-    const row = _seRows[i];
-    if (!row.carteira && !row.plataforma && !row.produto) {
-      alert(`Condição ${i + 1}: informe ao menos um resultado (carteira, plataforma ou produto).`);
-      return;
-    }
-  }
-  const ri = parseInt(idVal) - 1;
-  if (!rules[ri].conditions) rules[ri].conditions = [];
-  _seRows.forEach(row => {
-    const isFirst = rules[ri].conditions.length === 0;
-    rules[ri].conditions.push({
-      operator:   isFirst ? 'SE' : row.op,
-      funcionais: row.funcionais.split(',').map(f => f.trim()).filter(Boolean),
-      carteira:   row.carteira,
-      plataforma: row.plataforma,
-      produto:    row.produto
-    });
-  });
-  renderRules();
-  _seRows = [{ op:'SE', funcionais:'', carteira:'', plataforma:'', produto:'' }];
-  renderSeRows();
-}
+      function addCondition() {
+        const idVal = document.getElementById('se-id').value
+        if (!idVal) {
+          alert('Selecione a regra de referência.')
+          return
+        }
+        _syncSeRows()
+        if (!_seRows[0].funcionais.trim()) {
+          alert('Informe ao menos um funcional na primeira condição.')
+          return
+        }
+        for (let i = 0; i < _seRows.length; i++) {
+          const row = _seRows[i]
+          if (!row.carteira && !row.plataforma && !row.produto) {
+            alert(
+              `Condição ${i + 1}: informe ao menos um resultado (carteira, plataforma ou produto).`
+            )
+            return
+          }
+        }
+        const ri = parseInt(idVal) - 1
+        if (!rules[ri].conditions) rules[ri].conditions = []
+        _seRows.forEach(row => {
+          const isFirst = rules[ri].conditions.length === 0
+          rules[ri].conditions.push({
+            operator: isFirst ? 'SE' : row.op,
+            funcionais: row.funcionais
+              .split(',')
+              .map(f => f.trim())
+              .filter(Boolean),
+            carteira: row.carteira,
+            plataforma: row.plataforma,
+            produto: row.produto
+          })
+        })
+        renderRules()
+        _seRows = [
+          {
+            op: 'SE',
+            funcionais: '',
+            carteira: '',
+            plataforma: '',
+            produto: ''
+          }
+        ]
+        renderSeRows()
+      }
 
-const selAtor   = document.getElementById('sel-ator');
-const selModelo = document.getElementById('sel-modelo');
-const btnAdd    = document.getElementById('btn-add');
+      const selAtor = document.getElementById('sel-ator')
+      const selModelo = document.getElementById('sel-modelo')
+      const btnAdd = document.getElementById('btn-add')
 
-function _canAdd() {
-  const lead   = document.getElementById('chk-lead').checked;
-  const oferta = document.getElementById('chk-oferta').checked;
-  return !!(selAtor.value && selModelo.value && (lead || oferta));
-}
+      function _canAdd() {
+        const lead = document.getElementById('chk-lead').checked
+        const oferta = document.getElementById('chk-oferta').checked
+        return !!(selAtor.value && selModelo.value && (lead || oferta))
+      }
 
-selAtor.addEventListener('change', () => {
-  selModelo.disabled = !selAtor.value;
-  if (!selAtor.value) selModelo.value = '';
-  btnAdd.disabled = !_canAdd();
-});
+      selAtor.addEventListener('change', () => {
+        selModelo.disabled = !selAtor.value
+        if (!selAtor.value) selModelo.value = ''
+        btnAdd.disabled = !_canAdd()
+      })
 
-selModelo.addEventListener('change', () => {
-  btnAdd.disabled = !_canAdd();
-});
+      selModelo.addEventListener('change', () => {
+        btnAdd.disabled = !_canAdd()
+      })
 
-// ─── INSIGHTS DATA ────────────────────────────────────────────────────────────
+      // ─── INSIGHTS DATA ────────────────────────────────────────────────────────────
 
-const PRODUTOS_LIST = [
-  'Conta Corrente','CDB','LCI','LCA','Previdência Privada',
-  'Cartão de Crédito','Seguro Auto','Consórcio Imóvel','Crédito Pessoal','Investimento'
-];
+      const PRODUTOS_LIST = [
+        'Conta Corrente',
+        'CDB',
+        'LCI',
+        'LCA',
+        'Previdência Privada',
+        'Cartão de Crédito',
+        'Seguro Auto',
+        'Consórcio Imóvel',
+        'Crédito Pessoal',
+        'Investimento'
+      ]
 
-const BASE_LEADS = (() => {
-  const rows = [];
-  for (let i = 0; i < 500; i++) {
-    const plataforma = 6001 + (i * 23 % 399);
-    rows.push({
-      produto:     PRODUTOS_LIST[(i * 3 + 7) % PRODUTOS_LIST.length],
-      cpf:         String(10000000000 + i * 37337).slice(0, 11),
-      carteira:    '01_' + plataforma,
-      plataforma,
-      segmento:    1 + (i * 3 % 5),
-      fila:        1 + (i % 2),
-      prioridade:  1 + (i * 13 % 50),
-      valor:       (5 + (i * 17 % 995)) * 1000,
-      nProdutos:   1 + (i * 7 % 8),
-      horasNaFila: 1 + (i * 11 % 72),
-      dataCriacao: (() => {
-        const h = 1 + (i * 11 % 72);
-        const d = new Date(Date.now() - h * 3600000);
-        return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+      const BASE_LEADS = (() => {
+        const rows = []
+        for (let i = 0; i < 500; i++) {
+          const plataforma = 6001 + ((i * 23) % 399)
+          rows.push({
+            produto: PRODUTOS_LIST[(i * 3 + 7) % PRODUTOS_LIST.length],
+            cpf: String(10000000000 + i * 37337).slice(0, 11),
+            carteira: '01_' + plataforma,
+            plataforma,
+            segmento: 1 + ((i * 3) % 5),
+            fila: 1 + (i % 2),
+            prioridade: 1 + ((i * 13) % 50),
+            valor: (5 + ((i * 17) % 995)) * 1000,
+            nProdutos: 1 + ((i * 7) % 8),
+            horasNaFila: 1 + ((i * 11) % 72),
+            dataCriacao: (() => {
+              const h = 1 + ((i * 11) % 72)
+              const d = new Date(Date.now() - h * 3600000)
+              return (
+                d.toLocaleDateString('pt-BR') +
+                ' ' +
+                d.toLocaleTimeString('pt-BR', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })
+              )
+            })()
+          })
+        }
+        return rows
       })()
-    });
-  }
-  return rows;
-})();
 
-const TOP10_FUNC = (() => {
-  const indices = [0, 20, 45, 72, 100, 130, 155, 178, 190, 199];
-  return indices.map((fi, i) => {
-    const f = BASE_FUNC[fi];
-    const matching = BASE_LEADS.filter(l => l.carteira === f.carteira);
-    const cnt = {};
-    matching.forEach(l => { cnt[l.produto] = (cnt[l.produto] || 0) + 1; });
-    const top = Object.entries(cnt).sort((a,b) => b[1]-a[1])[0];
-    return {
-      funcional:          f.funcional,
-      carteira:           f.carteira,
-      produtoPredominante: top ? top[0] : PRODUTOS_LIST[i % PRODUTOS_LIST.length],
-      maisVendido30d:     PRODUTOS_LIST[(i * 4 + 2) % PRODUTOS_LIST.length],
-      leadsAtivos:        5 + (i * 7 % 25),
-      conversao:          (35 + i * 6 % 50) + '%'
-    };
-  });
-})();
+      const TOP10_FUNC = (() => {
+        const indices = [0, 20, 45, 72, 100, 130, 155, 178, 190, 199]
+        return indices.map((fi, i) => {
+          const f = BASE_FUNC[fi]
+          const matching = BASE_LEADS.filter(l => l.carteira === f.carteira)
+          const cnt = {}
+          matching.forEach(l => {
+            cnt[l.produto] = (cnt[l.produto] || 0) + 1
+          })
+          const top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0]
+          return {
+            funcional: f.funcional,
+            carteira: f.carteira,
+            produtoPredominante: top
+              ? top[0]
+              : PRODUTOS_LIST[i % PRODUTOS_LIST.length],
+            maisVendido30d: PRODUTOS_LIST[(i * 4 + 2) % PRODUTOS_LIST.length],
+            leadsAtivos: 5 + ((i * 7) % 25),
+            conversao: 35 + ((i * 6) % 50) + '%'
+          }
+        })
+      })()
 
-const BEST_CLIENTS = [...BASE_LEADS]
-  .sort((a,b) => b.nProdutos - a.nProdutos || b.valor - a.valor)
-  .slice(0, 15);
+      const BEST_CLIENTS = [...BASE_LEADS]
+        .sort((a, b) => b.nProdutos - a.nProdutos || b.valor - a.valor)
+        .slice(0, 15)
 
-const LEADS_24H = [...BASE_LEADS]
-  .filter(r => r.fila === 2 && r.horasNaFila >= 24)
-  .sort((a,b) => b.horasNaFila - a.horasNaFila)
-  .slice(0, 20);
+      const LEADS_HOURS_COUNT = (() => {
+        const CARTERIAS = ['01_6001','01_6023','01_6045','01_6067','01_6089','01_6111','01_6133','01_6155'];
+        const result = [];
+        for (let h = 5; h <= 24; h++) {
+          result.push({
+            horas:    h,
+            count:    800 + (h * 317 % 9200),
+            carteira: CARTERIAS[(h * 3) % CARTERIAS.length],
+            janela:   'Automação leve (2h–24h)'
+          });
+        }
+        return result;
+      })()
 
-let _insightsReady = false;
+      let _insightsReady = false
 
-function renderInsights() {
-  if (_insightsReady) return;
-  _insightsReady = true;
-  _renderFuncPerf();
-  _renderClientPrio();
-  _renderLeads24h();
-}
+      function renderInsights() {
+        if (_insightsReady) return
+        _insightsReady = true
+        _renderFuncPerf()
+        _renderClientPrio()
+        _renderLeads24h()
+      }
 
-function _renderFuncPerf() {
-  document.getElementById('func-perf-body').innerHTML = TOP10_FUNC.map(f => `
+      function _renderFuncPerf() {
+        document.getElementById('func-perf-body').innerHTML = TOP10_FUNC.map(
+          f => `
     <tr>
       <td style="font-family:monospace;font-size:11px">${f.funcional}</td>
       <td><span class="tag tag-indigo" style="font-size:10px;padding:2px 6px">${f.carteira}</span></td>
@@ -2048,153 +3083,207 @@ function _renderFuncPerf() {
       <td><span class="tag tag-orange" style="font-size:10px;padding:2px 6px">${f.maisVendido30d}</span></td>
       <td style="text-align:center"><span class="tag tag-green" style="font-size:10px;padding:2px 6px">${f.conversao}</span></td>
       <td style="text-align:center">${f.leadsAtivos}</td>
-    </tr>`).join('');
-}
+    </tr>`
+        ).join('')
+      }
 
-function _renderClientPrio() {
-  document.getElementById('q2-count').textContent = BEST_CLIENTS.length;
-  document.getElementById('client-prio-body').innerHTML = BEST_CLIENTS.map((c,i) => `
+      function _renderClientPrio() {
+        document.getElementById('q2-count').textContent = BEST_CLIENTS.length
+        document.getElementById('client-prio-body').innerHTML =
+          BEST_CLIENTS.map(
+            (c, i) => {
+              const preAprov = (i * 7 % 3) !== 0;
+              return `
     <tr>
       <td style="text-align:center">
         <input type="checkbox" class="row-check check-q2" data-cpf="${c.cpf}" data-i="${i}" onchange="updateSelCount()" />
       </td>
       <td style="font-family:monospace;font-size:11px">${c.cpf}</td>
       <td style="text-align:center"><strong>${c.nProdutos}</strong></td>
-      <td style="text-align:right">${c.valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</td>
+      <td style="text-align:right">${c.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}</td>
       <td style="text-align:center">
-        <span class="tag ${c.fila===1?'tag-orange':'tag-indigo'}" style="font-size:10px;padding:2px 7px" id="q2-fila-${i}">Fila ${c.fila}</span>
+        <span style="display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;
+          background:${preAprov?'#DCFCE7':'#FEE2E2'};color:${preAprov?'#15803D':'#DC2626'}">
+          ${preAprov?'Sim':'Não'}
+        </span>
+      </td>
+      <td style="text-align:center">
+        <span class="tag ${c.fila === 1 ? 'tag-orange' : 'tag-indigo'}" style="font-size:10px;padding:2px 7px" id="q2-fila-${i}">Fila ${c.fila}</span>
       </td>
       <td style="text-align:center;color:var(--muted)" id="q2-pos-${i}">#${c.prioridade}</td>
-    </tr>`).join('');
-}
+    </tr>`;
+            }
+          ).join('')
+      }
 
-function _renderLeads24h() {
-  document.getElementById('q3-count').textContent = LEADS_24H.length + ' CPFs';
-  document.getElementById('leads-24h-body').innerHTML = LEADS_24H.map((r,i) => `
+      function _renderLeads24h() {
+        const total = LEADS_HOURS_COUNT.reduce((s, r) => s + r.count, 0);
+        document.getElementById('q3-count').textContent = total.toLocaleString('pt-BR') + ' CPFs'
+        document.getElementById('leads-24h-body').innerHTML = LEADS_HOURS_COUNT.map(
+          (r, i) => `
     <tr>
       <td style="text-align:center">
-        <input type="checkbox" class="row-check check-q3" data-cpf="${r.cpf}" data-i="${i}" onchange="updateSelCount()" />
+        <input type="checkbox" class="row-check check-q3" data-i="${i}" onchange="updateSelCount()" />
       </td>
-      <td style="font-family:monospace;font-size:11px">${r.cpf}</td>
       <td>
-        <span class="tag" style="background:#FEF2F2;color:var(--danger);font-size:10px;padding:2px 7px;font-weight:700">${r.horasNaFila}h</span>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px">${r.dataCriacao}</div>
+        <span class="tag" style="background:#FEF2F2;color:var(--danger);font-size:10px;padding:2px 7px;font-weight:700">${r.horas}h</span>
       </td>
-      <td>${r.produto}</td>
+      <td style="text-align:right;font-weight:700">${r.count.toLocaleString('pt-BR')}</td>
       <td><span class="tag tag-indigo" style="font-size:10px;padding:2px 6px">${r.carteira}</span></td>
-      <td style="text-align:center;color:var(--muted)" id="q3-pos-${i}">#${r.prioridade}</td>
-    </tr>`).join('');
-}
-
-function updateSelCount() {
-  const n = document.querySelectorAll('.row-check:checked').length;
-  const el = document.getElementById('ab-count');
-  el.style.display = n ? '' : 'none';
-  el.textContent = n + (n === 1 ? ' selecionado' : ' selecionados');
-}
-
-function toggleAll(group) {
-  const hdr = document.getElementById('chk-all-' + group);
-  document.querySelectorAll('.check-' + group).forEach(c => { c.checked = hdr.checked; });
-  updateSelCount();
-}
-
-function applyActions() {
-  const checks = [...document.querySelectorAll('.row-check:checked')];
-  if (!checks.length) { alert('Selecione ao menos um registro.'); return; }
-  const newFila = document.getElementById('act-fila').value;
-  const newPos  = document.getElementById('act-posicao').value;
-  checks.forEach(cb => {
-    const group = cb.classList.contains('check-q2') ? 'q2' : 'q3';
-    const idx   = cb.dataset.i;
-    if (newFila) {
-      const el = document.getElementById(group + '-fila-' + idx);
-      if (el) {
-        el.textContent = 'Fila ' + newFila;
-        el.className = 'tag ' + (newFila === '1' ? 'tag-orange' : 'tag-indigo');
-        el.style.cssText = 'font-size:10px;padding:2px 7px';
+      <td style="font-size:11px;color:var(--muted)">${r.janela}</td>
+    </tr>`
+        ).join('')
       }
-    }
-    if (newPos) {
-      const el = document.getElementById(group + '-pos-' + idx);
-      if (el) el.textContent = '#' + newPos;
-    }
-    cb.checked = false;
-  });
-  updateSelCount();
-  const btn = document.querySelector('.btn-apply');
-  btn.textContent = '✓ Aplicado'; btn.style.background = 'var(--success)';
-  setTimeout(() => { btn.textContent = 'Aplicar'; btn.style.background = ''; }, 1500);
-}
 
-function sendPCMWhatsApp() {
-  const checks = [...document.querySelectorAll('.row-check:checked')];
-  if (!checks.length) { alert('Selecione ao menos um registro para enviar.'); return; }
-  const newCarteira = document.getElementById('act-carteira').value.trim();
-  const newFila     = document.getElementById('act-fila').value;
-  const newPos      = document.getElementById('act-posicao').value;
-  const hoje = new Date().toLocaleDateString('pt-BR') + ' ' +
-               new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  const cpfs = checks.map(cb => cb.dataset.cpf);
-  let msg = `📋 PCM — Motor de Distribuição\n📅 ${hoje}\n`;
-  if (newCarteira || newFila || newPos) {
-    msg += `\n✅ Ação solicitada:\n`;
-    if (newCarteira) msg += `  Nova carteira : ${newCarteira}\n`;
-    if (newFila)     msg += `  Mudar para    : Fila ${newFila}\n`;
-    if (newPos)      msg += `  Nova posição  : #${newPos}\n`;
-  }
-  msg += `\n👥 CPFs selecionados (${cpfs.length}):\n`;
-  cpfs.forEach(c => { msg += `  • ${c}\n`; });
-  msg += `\n— Enviado via Portal de Parametrização`;
-  document.getElementById('pcm-message').value = msg;
-  document.getElementById('pcm-modal').classList.add('open');
-}
+      function updateSelCount() {
+        const n = document.querySelectorAll('.row-check:checked').length
+        const el = document.getElementById('ab-count')
+        el.style.display = n ? '' : 'none'
+        el.textContent = n + (n === 1 ? ' selecionado' : ' selecionados')
+      }
 
-function closePCM() { document.getElementById('pcm-modal').classList.remove('open'); }
+      function toggleAll(group) {
+        const hdr = document.getElementById('chk-all-' + group)
+        document.querySelectorAll('.check-' + group).forEach(c => {
+          c.checked = hdr.checked
+        })
+        updateSelCount()
+      }
 
-function copyPCM(btn) {
-  navigator.clipboard.writeText(document.getElementById('pcm-message').value).catch(() => {
-    document.getElementById('pcm-message').select();
-    document.execCommand('copy');
-  });
-  btn.textContent = '✓ Copiado!';
-  setTimeout(() => { btn.textContent = '📋 Copiar mensagem'; }, 1500);
-}
+      function applyActions() {
+        const checks = [...document.querySelectorAll('.row-check:checked')]
+        if (!checks.length) {
+          alert('Selecione ao menos um registro.')
+          return
+        }
+        const newFila = document.getElementById('act-fila').value
+        const newPos = document.getElementById('act-posicao').value
+        checks.forEach(cb => {
+          const group = cb.classList.contains('check-q2') ? 'q2' : 'q3'
+          const idx = cb.dataset.i
+          if (newFila) {
+            const el = document.getElementById(group + '-fila-' + idx)
+            if (el) {
+              el.textContent = 'Fila ' + newFila
+              el.className =
+                'tag ' + (newFila === '1' ? 'tag-orange' : 'tag-indigo')
+              el.style.cssText = 'font-size:10px;padding:2px 7px'
+            }
+          }
+          if (newPos) {
+            const el = document.getElementById(group + '-pos-' + idx)
+            if (el) el.textContent = '#' + newPos
+          }
+          cb.checked = false
+        })
+        updateSelCount()
+        const btn = document.querySelector('.btn-apply')
+        btn.textContent = '✓ Aplicado'
+        btn.style.background = 'var(--success)'
+        setTimeout(() => {
+          btn.textContent = 'Aplicar'
+          btn.style.background = ''
+        }, 1500)
+      }
 
-function showView(v) {
-  document.getElementById('view-main').style.display     = v === 'main'     ? '' : 'none';
-  document.getElementById('view-insights').style.display = v === 'insights' ? '' : 'none';
-  document.getElementById('topbar-title').textContent    = v === 'insights' ? 'Insights' : 'Motor de Distribuição';
-  document.querySelectorAll('.nav-item[data-view]').forEach(el => {
-    el.classList.toggle('active', el.dataset.view === v);
-  });
-  if (v === 'insights') renderInsights();
-}
+      function sendPCMWhatsApp() {
+        const checks = [...document.querySelectorAll('.row-check:checked')]
+        if (!checks.length) {
+          alert('Selecione ao menos um registro para enviar.')
+          return
+        }
+        const newCarteira = document.getElementById('act-carteira').value.trim()
+        const newFila = document.getElementById('act-fila').value
+        const newPos = document.getElementById('act-posicao').value
+        const hoje =
+          new Date().toLocaleDateString('pt-BR') +
+          ' ' +
+          new Date().toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        const cpfs = checks.map(cb => cb.dataset.cpf)
+        let msg = `📋 PCM — Motor de Distribuição\n📅 ${hoje}\n`
+        if (newCarteira || newFila || newPos) {
+          msg += `\n✅ Ação solicitada:\n`
+          if (newCarteira) msg += `  Nova carteira : ${newCarteira}\n`
+          if (newFila) msg += `  Mudar para    : Fila ${newFila}\n`
+          if (newPos) msg += `  Nova posição  : #${newPos}\n`
+        }
+        msg += `\n👥 CPFs selecionados (${cpfs.length}):\n`
+        cpfs.forEach(c => {
+          msg += `  • ${c}\n`
+        })
+        msg += `\n— Enviado via Portal de Parametrização`
+        document.getElementById('pcm-message').value = msg
+        document.getElementById('pcm-modal').classList.add('open')
+      }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closePCM(); });
+      function closePCM() {
+        document.getElementById('pcm-modal').classList.remove('open')
+      }
 
-initAllDl();
-renderRules();
-renderSeRows();
-</script>
+      function copyPCM(btn) {
+        navigator.clipboard
+          .writeText(document.getElementById('pcm-message').value)
+          .catch(() => {
+            document.getElementById('pcm-message').select()
+            document.execCommand('copy')
+          })
+        btn.textContent = '✓ Copiado!'
+        setTimeout(() => {
+          btn.textContent = '📋 Copiar mensagem'
+        }, 1500)
+      }
 
-<!-- ══ MODAL PCM WHATSAPP ═══════════════════════════════════════════════════ -->
-<div id="pcm-modal" class="pcm-modal-overlay" onclick="if(event.target===this)closePCM()">
-  <div class="pcm-modal-panel">
-    <div class="modal-header">
-      <div>
-        <h2 class="modal-title">PCM — WhatsApp</h2>
-        <p class="modal-sub">Revise a mensagem e copie para enviar</p>
+      function showView(v) {
+        document.getElementById('view-main').style.display =
+          v === 'main' ? '' : 'none'
+        document.getElementById('view-insights').style.display =
+          v === 'insights' ? '' : 'none'
+        document.getElementById('topbar-title').textContent =
+          v === 'insights' ? 'Insights' : 'Motor de Distribuição'
+        document.querySelectorAll('.nav-item[data-view]').forEach(el => {
+          el.classList.toggle('active', el.dataset.view === v)
+        })
+        if (v === 'insights') renderInsights()
+      }
+
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closePCM()
+      })
+
+      initAllDl()
+      renderRules()
+      renderSeRows()
+    </script>
+
+    <!-- ══ MODAL PCM WHATSAPP ═══════════════════════════════════════════════════ -->
+    <div
+      id="pcm-modal"
+      class="pcm-modal-overlay"
+      onclick="if (event.target === this) closePCM()"
+    >
+      <div class="pcm-modal-panel">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title">PCM — WhatsApp</h2>
+            <p class="modal-sub">Revise a mensagem e copie para enviar</p>
+          </div>
+          <button class="modal-close" onclick="closePCM()">×</button>
+        </div>
+        <textarea id="pcm-message" readonly></textarea>
+        <div style="display: flex; gap: 10px; padding: 14px 20px 20px">
+          <button
+            class="btn-whatsapp"
+            style="margin-left: 0"
+            onclick="copyPCM(this)"
+          >
+            &#128203; Copiar mensagem
+          </button>
+          <button class="btn-ghost" onclick="closePCM()">Fechar</button>
+        </div>
       </div>
-      <button class="modal-close" onclick="closePCM()">×</button>
     </div>
-    <textarea id="pcm-message" readonly></textarea>
-    <div style="display:flex;gap:10px;padding:14px 20px 20px">
-      <button class="btn-whatsapp" style="margin-left:0" onclick="copyPCM(this)">&#128203; Copiar mensagem</button>
-      <button class="btn-ghost" onclick="closePCM()">Fechar</button>
-    </div>
-  </div>
-</div>
-
-</body>
+  </body>
 </html>
