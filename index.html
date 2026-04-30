@@ -1556,9 +1556,9 @@
         box-shadow: var(--shadow);
         overflow: hidden;
       }
-      .i-card table { width: 100%; }
+      .i-card table { width: 100%; table-layout: fixed; }
       .i-card table tbody tr { height: 38px; }
-      .i-card table tbody td { vertical-align: middle; }
+      .i-card table tbody td { vertical-align: middle; overflow: hidden; text-overflow: ellipsis; }
       .i-card-title {
         display: flex;
         align-items: center;
@@ -2059,14 +2059,19 @@
           </div>
           <div style="overflow-x: auto">
             <table style="font-size: 12px">
+              <colgroup>
+                <col style="width:13%"><col style="width:13%">
+                <col style="width:26%"><col style="width:22%">
+                <col style="width:13%"><col style="width:13%">
+              </colgroup>
               <thead>
                 <tr>
                   <th>Funcional</th>
                   <th>Carteira</th>
                   <th>Produto predominante na carteira</th>
                   <th>Mais vendido (30d)</th>
-                  <th>Conversão (30d)</th>
-                  <th>Leads ativos</th>
+                  <th style="text-align:center">Conversão (30d)</th>
+                  <th style="text-align:center">Leads ativos</th>
                 </tr>
               </thead>
               <tbody id="func-perf-body"></tbody>
@@ -2123,22 +2128,21 @@
           </div>
           <div style="overflow-x: auto">
             <table style="font-size: 12px">
+              <colgroup>
+                <col style="width:4%"><col style="width:18%">
+                <col style="width:9%"><col style="width:19%">
+                <col style="width:19%"><col style="width:16%">
+                <col style="width:15%">
+              </colgroup>
               <thead>
                 <tr>
-                  <th style="width: 32px">
-                    <input
-                      type="checkbox"
-                      class="hdr-check"
-                      id="chk-all-q2"
-                      onclick="toggleAll('q2')"
-                    />
-                  </th>
+                  <th style="text-align:center"><input type="checkbox" class="hdr-check" id="chk-all-q2" onclick="toggleAll('q2')" /></th>
                   <th>CPF</th>
-                  <th>Nº Produtos</th>
-                  <th>Valor acumulado</th>
-                  <th>Pré-aprovado</th>
-                  <th>Fila atual</th>
-                  <th>Posição</th>
+                  <th style="text-align:center">Nº Produtos</th>
+                  <th style="text-align:right">Valor acumulado</th>
+                  <th style="text-align:right">Pré-aprovado</th>
+                  <th style="text-align:center">Fila atual</th>
+                  <th style="text-align:center">Posição</th>
                 </tr>
               </thead>
               <tbody id="client-prio-body"></tbody>
@@ -2155,18 +2159,16 @@
           </div>
           <div style="overflow-x: auto">
             <table style="font-size: 12px">
+              <colgroup>
+                <col style="width:5%"><col style="width:22%">
+                <col style="width:23%"><col style="width:27%">
+                <col style="width:23%">
+              </colgroup>
               <thead>
                 <tr>
-                  <th style="width: 32px">
-                    <input
-                      type="checkbox"
-                      class="hdr-check"
-                      id="chk-all-q3"
-                      onclick="toggleAll('q3')"
-                    />
-                  </th>
+                  <th style="text-align:center"><input type="checkbox" class="hdr-check" id="chk-all-q3" onclick="toggleAll('q3')" /></th>
                   <th>Horas aguardando</th>
-                  <th style="text-align: right">Nº de CPFs</th>
+                  <th style="text-align:right">Nº de CPFs</th>
                   <th>Carteira predominante</th>
                   <th style="text-align:right">Leads ativos</th>
                 </tr>
