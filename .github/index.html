@@ -3446,6 +3446,7 @@
       let _insightsV2Ready = false
       let _q2v2Threshold   = 10
       let _ruleModalRow    = null
+      let _ruleModalStep   = 1
       let _ruleStates      = {}
       let _q2v2States      = {}
       let _q3v2States      = {}
@@ -3485,7 +3486,7 @@
         document.getElementById('q1v2-body').innerHTML = TOP10_FUNC.map((f, i) => {
           const state = _ruleStates[i]
           const acao = state
-            ? `<span class="tag tag-green" style="font-size:10px;padding:2px 8px">✓ ${_ruleTipoLabel(state.tipo)}${state.expiry ? ' · ' + state.expiry + 'd' : ''}</span>`
+            ? `<span class="tag tag-green" style="font-size:10px;padding:2px 8px">✓ Regra criada — ${_ruleTipoLabel(state.tipo)} · ${state.origem || 'Todas'}</span>`
             : `<button onclick="openRuleModal(${i})" style="background:var(--orange-lt);border:1px solid var(--orange-mid);color:var(--orange-dark);border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">+ Criar regra</button>`
           return `
     <tr>
@@ -3514,12 +3515,92 @@
       function openRuleModal(rowIdx) {
         _ruleModalRow = rowIdx
         const f = TOP10_FUNC[rowIdx]
-        document.getElementById('rule-preview').innerHTML =
+        document.getElementById('rule-step1-preview').innerHTML =
           `<strong>Funcional:</strong> <span style="font-family:monospace">${f.funcional}</span> &nbsp;·&nbsp; <strong>Carteira:</strong> ${f.carteira}<br>` +
           `<strong>Produto:</strong> ${f.produtoPredominante} &nbsp;·&nbsp; <strong>Conversão (30d):</strong> ${f.conversao}`
         document.querySelectorAll('input[name="rule-type"]').forEach(r => r.checked = false)
         document.getElementById('rule-expiry-field').style.display = 'none'
+        _ruleModalShowStep(1)
         document.getElementById('modal-rule-v2').style.display = 'flex'
+      }
+
+      function _ruleModalShowStep(step) {
+        _ruleModalStep = step
+        for (let s = 1; s <= 3; s++) {
+          const el = document.getElementById('rule-stepper-' + s)
+          const circle = el.firstElementChild
+          const label  = el.lastElementChild
+          if (s < step) {
+            circle.style.background = '#d1fae5'; circle.style.color = '#065f46'
+            label.style.color = '#065f46'
+          } else if (s === step) {
+            circle.style.background = 'var(--orange)'; circle.style.color = '#fff'
+            label.style.color = 'var(--text)'
+          } else {
+            circle.style.background = 'var(--border)'; circle.style.color = 'var(--muted)'
+            label.style.color = 'var(--muted)'
+          }
+        }
+        document.getElementById('rule-step1').style.display = step === 1 ? '' : 'none'
+        document.getElementById('rule-step2').style.display = step === 2 ? '' : 'none'
+        document.getElementById('rule-step3').style.display = step === 3 ? '' : 'none'
+      }
+
+      function ruleModalNext() {
+        if (_ruleModalStep === 1) {
+          _ruleModalShowStep(2)
+        } else if (_ruleModalStep === 2) {
+          const sel = document.querySelector('input[name="rule-type"]:checked')
+          if (!sel) { alert('Selecione um tipo de regra.'); return }
+          const f = TOP10_FUNC[_ruleModalRow]
+          _renderRuleOrigem(f.produtoPredominante)
+          _ruleModalShowStep(3)
+        }
+      }
+
+      function ruleModalBack() {
+        _ruleModalShowStep(_ruleModalStep - 1)
+      }
+
+      function _getOrigemData(produto) {
+        let seed = 0
+        for (let i = 0; i < produto.length; i++) seed += produto.charCodeAt(i) * (i + 1)
+        const carteiras = []
+        for (let i = 0; i < 4; i++) carteiras.push('01_' + (4001 + ((seed * (i * 97 + 31)) % 3998)))
+        const leadsBase = 350 + (seed % 150)
+        const leads4 = carteiras.map((_, i) => Math.max(80, leadsBase - i * (40 + (seed % 30) + i * 15)))
+        const total = leads4.reduce((s, v) => s + v, 0)
+        return [
+          { origem: 'Todas', leads: total, regiao: '—', dineg: '—' },
+          ...carteiras.map((c, i) => ({
+            origem: c,
+            leads:  leads4[i],
+            regiao: String(((i * 2 + seed) % 5) + 1),
+            dineg:  String(((seed * (i + 1)) % 49) + 2)
+          }))
+        ]
+      }
+
+      function _renderRuleOrigem(produto) {
+        document.getElementById('rule-step3-title').textContent = `De onde vêm os leads de ${produto}?`
+        const data = _getOrigemData(produto)
+        document.getElementById('rule-origem-body').innerHTML = data.map((r, i) => `
+    <tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:6px 8px;text-align:center"><input type="checkbox" name="rule-origem" value="${r.origem}" onchange="_handleOrigemCheck(${i})" /></td>
+      <td style="padding:6px 8px;font-family:monospace;font-size:11px">${r.origem}</td>
+      <td style="padding:6px 8px;text-align:right">${r.leads}</td>
+      <td style="padding:6px 8px;text-align:center">${r.regiao}</td>
+      <td style="padding:6px 8px;text-align:center">${r.dineg}</td>
+    </tr>`).join('')
+      }
+
+      function _handleOrigemCheck(idx) {
+        const checks = document.querySelectorAll('input[name="rule-origem"]')
+        if (idx === 0 && checks[0].checked) {
+          checks.forEach((c, i) => { if (i > 0) c.checked = false })
+        } else if (idx > 0) {
+          checks[0].checked = false
+        }
       }
 
       function closeRuleModal() {
@@ -3537,7 +3618,9 @@
         if (!sel) { alert('Selecione um tipo de regra.'); return }
         const expiry = sel.value === 'teste'
           ? (parseInt(document.getElementById('rule-expiry-days').value) || 7) : null
-        _ruleStates[_ruleModalRow] = { tipo: sel.value, expiry }
+        const selOrigem = document.querySelector('input[name="rule-origem"]:checked')
+        const origem = selOrigem ? selOrigem.value : 'Todas'
+        _ruleStates[_ruleModalRow] = { tipo: sel.value, expiry, origem }
         closeRuleModal()
         _renderQ1v2()
       }
@@ -3766,34 +3849,84 @@
     </div>
     <!-- ══ MODAL REGRA V2 ════════════════════════════════════════════════════ -->
     <div id="modal-rule-v2" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center" onclick="if(event.target===this)closeRuleModal()">
-      <div style="background:#fff;border-radius:12px;padding:28px 32px;width:480px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,0.2)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="background:#fff;border-radius:12px;padding:28px 32px;width:520px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,0.2)">
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
           <h3 style="font-size:16px;font-weight:700;color:var(--text)">Criar regra no Motor</h3>
           <button onclick="closeRuleModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1">×</button>
         </div>
-        <div id="rule-preview" style="background:var(--orange-lt);border:1px solid var(--orange-mid);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:12px;line-height:1.8;color:var(--text)"></div>
-        <p style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.08em">Tipo de regra</p>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
-          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
-            <input type="radio" name="rule-type" value="prioritario" style="margin-top:3px" onchange="handleRuleTypeChange(this.value)" />
-            <span><strong>Prioritário</strong> — funcional recebe primeiro, outros também podem receber</span>
-          </label>
-          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
-            <input type="radio" name="rule-type" value="exclusivo" style="margin-top:3px" onchange="handleRuleTypeChange(this.value)" />
-            <span><strong>Exclusivo</strong> — apenas esse funcional recebe esse produto</span>
-          </label>
-          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
-            <input type="radio" name="rule-type" value="teste" style="margin-top:3px" onchange="handleRuleTypeChange(this.value)" />
-            <span><strong>Teste</strong> — regra expira automaticamente</span>
-          </label>
+        <!-- Stepper -->
+        <div style="display:flex;align-items:center;margin-bottom:22px">
+          <div id="rule-stepper-1" style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600">
+            <span style="width:20px;height:20px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">1</span>
+            <span style="color:var(--text)">Preview</span>
+          </div>
+          <div style="flex:1;height:1px;background:var(--border);margin:0 10px"></div>
+          <div id="rule-stepper-2" style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600">
+            <span style="width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">2</span>
+            <span style="color:var(--muted)">Tipo</span>
+          </div>
+          <div style="flex:1;height:1px;background:var(--border);margin:0 10px"></div>
+          <div id="rule-stepper-3" style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600">
+            <span style="width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">3</span>
+            <span style="color:var(--muted)">Origem</span>
+          </div>
         </div>
-        <div id="rule-expiry-field" style="display:none;margin-bottom:18px;padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
-          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Expirar em (dias)</label>
-          <input type="number" id="rule-expiry-days" min="1" max="90" value="7" style="border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;width:120px;color:var(--text)" />
+        <!-- Etapa 1 — Preview -->
+        <div id="rule-step1">
+          <div id="rule-step1-preview" style="background:var(--orange-lt);border:1px solid var(--orange-mid);border-radius:8px;padding:12px 14px;margin-bottom:20px;font-size:12px;line-height:1.8;color:var(--text)"></div>
+          <div style="display:flex;justify-content:flex-end">
+            <button onclick="ruleModalNext()" style="background:var(--orange);border:none;border-radius:7px;padding:8px 20px;font-size:13px;cursor:pointer;color:#fff;font-weight:700">Próximo →</button>
+          </div>
         </div>
-        <div style="display:flex;gap:10px;justify-content:flex-end">
-          <button onclick="closeRuleModal()" style="background:var(--border);border:none;border-radius:7px;padding:8px 20px;font-size:13px;cursor:pointer;color:var(--text)">Cancelar</button>
-          <button onclick="confirmRuleV2()" style="background:var(--orange);border:none;border-radius:7px;padding:8px 20px;font-size:13px;cursor:pointer;color:#fff;font-weight:700">Confirmar regra</button>
+        <!-- Etapa 2 — Tipo de regra -->
+        <div id="rule-step2" style="display:none">
+          <p style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.08em">Tipo de regra</p>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="radio" name="rule-type" value="prioritario" style="margin-top:3px" onchange="handleRuleTypeChange(this.value)" />
+              <span><strong>Prioritário</strong> — funcional recebe primeiro, outros também podem receber</span>
+            </label>
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="radio" name="rule-type" value="exclusivo" style="margin-top:3px" onchange="handleRuleTypeChange(this.value)" />
+              <span><strong>Exclusivo</strong> — apenas esse funcional recebe esse produto</span>
+            </label>
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="radio" name="rule-type" value="teste" style="margin-top:3px" onchange="handleRuleTypeChange(this.value)" />
+              <span><strong>Teste</strong> — regra expira automaticamente</span>
+            </label>
+          </div>
+          <div id="rule-expiry-field" style="display:none;margin-bottom:18px;padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+            <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Expirar em (dias)</label>
+            <input type="number" id="rule-expiry-days" min="1" max="90" value="7" style="border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;width:120px;color:var(--text)" />
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button onclick="ruleModalBack()" style="background:var(--border);border:none;border-radius:7px;padding:8px 20px;font-size:13px;cursor:pointer;color:var(--text)">← Voltar</button>
+            <button onclick="ruleModalNext()" style="background:var(--orange);border:none;border-radius:7px;padding:8px 20px;font-size:13px;cursor:pointer;color:#fff;font-weight:700">Próximo →</button>
+          </div>
+        </div>
+        <!-- Etapa 3 — Origem dos leads -->
+        <div id="rule-step3" style="display:none">
+          <p id="rule-step3-title" style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px"></p>
+          <p style="font-size:11px;color:var(--muted);margin-bottom:14px">Selecione as origens que esse funcional poderá visualizar</p>
+          <div style="overflow-x:auto;margin-bottom:18px;border:1px solid var(--border);border-radius:8px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="background:var(--bg)">
+                  <th style="padding:7px 8px;width:32px"></th>
+                  <th style="padding:7px 8px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Origem</th>
+                  <th style="padding:7px 8px;text-align:right;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Leads ativos</th>
+                  <th style="padding:7px 8px;text-align:center;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Região</th>
+                  <th style="padding:7px 8px;text-align:center;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Dineg</th>
+                </tr>
+              </thead>
+              <tbody id="rule-origem-body"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button onclick="ruleModalBack()" style="background:var(--border);border:none;border-radius:7px;padding:8px 20px;font-size:13px;cursor:pointer;color:var(--text)">← Voltar</button>
+            <button onclick="confirmRuleV2()" style="background:var(--orange);border:none;border-radius:7px;padding:8px 20px;font-size:13px;cursor:pointer;color:#fff;font-weight:700">Confirmar regra</button>
+          </div>
         </div>
       </div>
     </div>
