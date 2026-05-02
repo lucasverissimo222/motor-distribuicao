@@ -2149,9 +2149,10 @@
           <div style="overflow-x:auto">
             <table style="font-size:12px">
               <colgroup>
+                <col style="width:10%"><col style="width:10%">
+                <col style="width:10%"><col style="width:10%">
                 <col style="width:14%"><col style="width:14%">
-                <col style="width:14%"><col style="width:14%">
-                <col style="width:16%"><col style="width:28%">
+                <col style="width:10%"><col style="width:22%">
               </colgroup>
               <thead>
                 <tr>
@@ -2159,6 +2160,8 @@
                   <th style="text-align:right">Aguardando</th>
                   <th style="text-align:right">Atuados 2d</th>
                   <th style="text-align:right">Cap. diária</th>
+                  <th style="text-align:center">Lead + antigo</th>
+                  <th style="text-align:center">Tempo restante</th>
                   <th style="text-align:center">Status</th>
                   <th style="text-align:center">Ação</th>
                 </tr>
@@ -3433,12 +3436,12 @@
       // ── INSIGHTS V2 ──────────────────────────────────────────────────────────
 
       const Q3_DATA = [
-        {cart:'01_5412', aguardando:1240, atuados2d:12},
-        {cart:'01_2387', aguardando:960,  atuados2d:420},
-        {cart:'01_9001', aguardando:780,  atuados2d:680},
-        {cart:'01_1122', aguardando:620,  atuados2d:55},
-        {cart:'01_3344', aguardando:440,  atuados2d:390},
-        {cart:'01_7788', aguardando:360,  atuados2d:310}
+        {cart:'01_5412', aguardando:1240, atuados2d:12,  horasMaisAntigo:44},
+        {cart:'01_2387', aguardando:960,  atuados2d:420, horasMaisAntigo:38},
+        {cart:'01_9001', aguardando:780,  atuados2d:680, horasMaisAntigo:18},
+        {cart:'01_1122', aguardando:620,  atuados2d:55,  horasMaisAntigo:31},
+        {cart:'01_3344', aguardando:440,  atuados2d:390, horasMaisAntigo:12},
+        {cart:'01_7788', aguardando:360,  atuados2d:310, horasMaisAntigo:6 }
       ]
 
       let _insightsV2Ready = false
@@ -3746,22 +3749,23 @@
 
       function _renderQ3v2() {
         const rows = Q3_DATA.map(r => {
-          const capDiaria = Math.round(r.atuados2d / 2)
+          const capDiaria      = Math.round(r.atuados2d / 2)
+          const tempoRestante  = 48 - r.horasMaisAntigo
           let status
-          if      (r.aguardando <= capDiaria * 3) status = 'ok'
-          else if (r.aguardando <= capDiaria * 7) status = 'atencao'
-          else                                    status = 'critico'
-          return { ...r, capDiaria, status }
+          if (capDiaria * 3 < r.aguardando || tempoRestante < 8)                              status = 'critico'
+          else if (capDiaria * 3 >= r.aguardando && tempoRestante >= 8 && tempoRestante <= 24) status = 'atencao'
+          else                                                                                  status = 'ok'
+          return { ...r, capDiaria, tempoRestante, status }
         })
 
-        const nCritico = rows.filter(r => r.status === 'critico').length
-        const nAtencao = rows.filter(r => r.status === 'atencao').length
-        const nOk      = rows.filter(r => r.status === 'ok').length
+        const nCritico   = rows.filter(r => r.status === 'critico').length
+        const nAtencao   = rows.filter(r => r.status === 'atencao').length
+        const nExpirando = rows.filter(r => r.tempoRestante < 8).length
         _renderMetrics('q3v2-metrics', [
-          { label: 'Total monitorado', value: rows.length, color: 'var(--text)'    },
-          { label: 'Crítico',          value: nCritico,    color: 'var(--danger)'  },
-          { label: 'Atenção',          value: nAtencao,    color: '#92400e'        },
-          { label: 'OK',               value: nOk,         color: 'var(--success)' }
+          { label: 'Total monitorado', value: rows.length, color: 'var(--text)'   },
+          { label: 'Crítico',          value: nCritico,    color: 'var(--danger)' },
+          { label: 'Atenção',          value: nAtencao,    color: '#92400e'       },
+          { label: 'Expirando em 8h',  value: nExpirando,  color: 'var(--danger)' }
         ])
 
         const statusCfg = {
@@ -3770,20 +3774,29 @@
           critico: { bg:'#fef2f2', c:'#991b1b', label:'Crítico' }
         }
 
+        const uberBadge = `<span style="background:#f3f4f6;color:#6b7280;border-radius:5px;padding:2px 7px;font-size:10px;font-style:italic;margin-left:5px">Uber-like — em desenvolvimento</span>`
+
         document.getElementById('q3v2-body').innerHTML = rows.map((r, i) => {
           const scfg  = statusCfg[r.status]
           const state = _q3v2States[i]
 
+          const antBg = r.horasMaisAntigo > 40 ? '#fef2f2' : r.horasMaisAntigo > 24 ? '#fffbeb' : '#f3f4f6'
+          const antC  = r.horasMaisAntigo > 40 ? '#991b1b' : r.horasMaisAntigo > 24 ? '#92400e' : '#6b7280'
+          const trBg  = r.tempoRestante  < 8  ? '#fef2f2' : r.tempoRestante  < 24 ? '#fffbeb' : '#d1fae5'
+          const trC   = r.tempoRestante  < 8  ? '#991b1b' : r.tempoRestante  < 24 ? '#92400e' : '#065f46'
+
+          const antBadge = `<span style="background:${antBg};color:${antC};border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700">${r.horasMaisAntigo}h na fila</span>`
+          const trBadge  = `<span style="background:${trBg};color:${trC};border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700">${r.tempoRestante}h restantes</span>`
+
           let acao
           if (state?.confirmed) {
-            const doneLabel = r.status === 'critico' ? '✓ PCM + Uber-like' : '✓ Uber-like ativado'
-            acao = `<span style="font-size:10px;color:var(--muted);font-style:italic">${doneLabel}</span>`
+            acao = `<span style="font-size:10px;color:var(--muted);font-style:italic">✓ PCM disparado</span>${uberBadge}`
           } else if (r.status === 'ok') {
             acao = `<span style="font-size:11px;color:var(--muted)">Nenhuma</span>`
           } else if (r.status === 'atencao') {
-            acao = `<button onclick="fireQ3Action(${i})" style="background:#d1fae5;border:1px solid #6ee7b730;color:#065f46;border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">Ativar uber-like</button>`
+            acao = uberBadge
           } else {
-            acao = `<button onclick="fireQ3Action(${i})" style="background:#fef2f2;border:1px solid #99181b30;color:#991b1b;border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">PCM + Uber-like</button>`
+            acao = `<button onclick="fireQ3Action(${i})" style="background:#fef2f2;border:1px solid #99181b30;color:#991b1b;border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">Disparar PCM</button>${uberBadge}`
           }
 
           return `
@@ -3792,6 +3805,8 @@
       <td style="text-align:right;font-weight:700">${r.aguardando.toLocaleString('pt-BR')}</td>
       <td style="text-align:right">${r.atuados2d.toLocaleString('pt-BR')}</td>
       <td style="text-align:right;color:var(--muted)">${r.capDiaria.toLocaleString('pt-BR')}</td>
+      <td style="text-align:center">${antBadge}</td>
+      <td style="text-align:center">${trBadge}</td>
       <td style="text-align:center"><span style="background:${scfg.bg};color:${scfg.c};border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700">${scfg.label}</span></td>
       <td style="text-align:center">${acao}</td>
     </tr>`
@@ -3804,11 +3819,13 @@
       }
 
       function applyAllQ3v2() {
-        Q3_DATA.forEach((_, i) => {
-          const r = Q3_DATA[i]
-          const capDiaria = Math.round(r.atuados2d / 2)
-          const status = r.aguardando <= capDiaria * 3 ? 'ok' : r.aguardando <= capDiaria * 7 ? 'atencao' : 'critico'
-          if (status !== 'ok' && !_q3v2States[i]?.confirmed) {
+        Q3_DATA.forEach((r, i) => {
+          const capDiaria     = Math.round(r.atuados2d / 2)
+          const tempoRestante = 48 - r.horasMaisAntigo
+          const status = (capDiaria * 3 < r.aguardando || tempoRestante < 8) ? 'critico'
+                       : (capDiaria * 3 >= r.aguardando && tempoRestante >= 8 && tempoRestante <= 24) ? 'atencao'
+                       : 'ok'
+          if (status === 'critico' && !_q3v2States[i]?.confirmed) {
             _q3v2States[i] = { confirmed: true }
           }
         })
