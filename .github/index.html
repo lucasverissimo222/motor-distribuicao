@@ -2111,6 +2111,12 @@
               <option value="10" selected>Top 10% (PA &gt; R$100k)</option>
               <option value="20">Top 20% (PA &gt; R$50k)</option>
             </select>
+            <select id="q2v2-segment" onchange="_q2v2SegmentChange()" style="margin-left:6px;border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;background:var(--surface);color:var(--text);font-weight:600;text-transform:none;letter-spacing:0">
+              <option value="0">Todos os segmentos</option>
+              <option value="1">IA — Agências</option>
+              <option value="2">IU — Uniclass</option>
+              <option value="5">IP — Personnalité</option>
+            </select>
             <span class="count-pill" id="q2v2-count">—</span>
             <button onclick="applyAllQ2v2()" style="margin-left:auto;background:var(--orange-lt);border:1px solid var(--orange-mid);color:var(--orange-dark);border-radius:6px;padding:3px 12px;font-size:11px;cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0">Aplicar todos</button>
           </div>
@@ -2153,6 +2159,12 @@
             <span class="badge" style="background:var(--success)">3</span>
             Saúde das Carteiras
             <span style="font-size:11px;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;margin-left:6px">Fila 2 · capacidade vs demanda por carteira</span>
+            <select id="q3v2-segment" onchange="_q3v2SegmentChange()" style="margin-left:8px;border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;background:var(--surface);color:var(--text);font-weight:600;text-transform:none;letter-spacing:0">
+              <option value="0">Todos os segmentos</option>
+              <option value="1">IA — Agências</option>
+              <option value="2">IU — Uniclass</option>
+              <option value="5">IP — Personnalité</option>
+            </select>
             <span class="count-pill" id="q3v2-count">6</span>
             <button onclick="applyAllQ3v2()" style="margin-left:auto;background:var(--orange-lt);border:1px solid var(--orange-mid);color:var(--orange-dark);border-radius:6px;padding:3px 12px;font-size:11px;cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0">Aplicar todos</button>
           </div>
@@ -3450,16 +3462,18 @@
       // ── INSIGHTS V2 ──────────────────────────────────────────────────────────
 
       const Q3_DATA = [
-        {cart:'01_5412', aguardando:1240, atuados2d:12,  horasMaisAntigo:44},
-        {cart:'01_2387', aguardando:960,  atuados2d:420, horasMaisAntigo:38},
-        {cart:'01_9001', aguardando:780,  atuados2d:680, horasMaisAntigo:18},
-        {cart:'01_1122', aguardando:620,  atuados2d:55,  horasMaisAntigo:31},
-        {cart:'01_3344', aguardando:440,  atuados2d:390, horasMaisAntigo:12},
-        {cart:'01_7788', aguardando:360,  atuados2d:310, horasMaisAntigo:6 }
+        {cart:'01_5412', idsegmento:1, aguardando:1240, atuados2d:12,  horasMaisAntigo:44},
+        {cart:'01_2387', idsegmento:2, aguardando:960,  atuados2d:420, horasMaisAntigo:38},
+        {cart:'01_9001', idsegmento:5, aguardando:780,  atuados2d:680, horasMaisAntigo:18},
+        {cart:'01_1122', idsegmento:1, aguardando:620,  atuados2d:55,  horasMaisAntigo:31},
+        {cart:'01_3344', idsegmento:2, aguardando:440,  atuados2d:390, horasMaisAntigo:12},
+        {cart:'01_7788', idsegmento:5, aguardando:360,  atuados2d:310, horasMaisAntigo:6 }
       ]
 
       let _insightsV2Ready = false
       let _q2v2Threshold   = 10
+      let _q2v2Segment     = 0
+      let _q3v2Segment     = 0
       let _ruleModalRow    = null
       let _ruleModalStep   = 1
       let _ruleStates      = {}
@@ -3656,13 +3670,13 @@
       // ── Q2 v2 ──────────────────────────────────────────────────────────────
 
       const Q2_DATA = [
-        {cpf:'***.456.789-**', cesta:'Crédito',      produto:'Crédito Pessoal', prods:7, valor:1200000, pa:280000, posicao:1240, horasNaFila:22},
-        {cpf:'***.123.456-**', cesta:'Crédito',      produto:'Consórcio',       prods:6, valor:890000,  pa:195000, posicao:980,  horasNaFila:18},
-        {cpf:'***.789.012-**', cesta:'Investimento', produto:'LCI',             prods:5, valor:540000,  pa:0,      posicao:612,  horasNaFila:9 },
-        {cpf:'***.321.654-**', cesta:'Crédito',      produto:'CDC',             prods:4, valor:320000,  pa:88000,  posicao:380,  horasNaFila:6 },
-        {cpf:'***.654.321-**', cesta:'Conveniência', produto:'Seguro Vida',     prods:3, valor:210000,  pa:0,      posicao:290,  horasNaFila:14},
-        {cpf:'***.111.222-**', cesta:'Crédito',      produto:'Crédito Pessoal', prods:2, valor:180000,  pa:38000,  posicao:510,  horasNaFila:21},
-        {cpf:'***.333.444-**', cesta:'Investimento', produto:'CDB',             prods:2, valor:120000,  pa:0,      posicao:850,  horasNaFila:11}
+        {cpf:'***.456.789-**', idsegmento:1, cesta:'Crédito',      produto:'Crédito Pessoal', prods:7, valor:1200000, pa:280000, posicao:1240, horasNaFila:22},
+        {cpf:'***.123.456-**', idsegmento:2, cesta:'Crédito',      produto:'Consórcio',       prods:6, valor:890000,  pa:195000, posicao:980,  horasNaFila:18},
+        {cpf:'***.789.012-**', idsegmento:5, cesta:'Investimento', produto:'LCI',             prods:5, valor:540000,  pa:0,      posicao:612,  horasNaFila:9 },
+        {cpf:'***.321.654-**', idsegmento:1, cesta:'Crédito',      produto:'CDC',             prods:4, valor:320000,  pa:88000,  posicao:380,  horasNaFila:6 },
+        {cpf:'***.654.321-**', idsegmento:2, cesta:'Conveniência', produto:'Seguro Vida',     prods:3, valor:210000,  pa:0,      posicao:290,  horasNaFila:14},
+        {cpf:'***.111.222-**', idsegmento:5, cesta:'Crédito',      produto:'Crédito Pessoal', prods:2, valor:180000,  pa:38000,  posicao:510,  horasNaFila:21},
+        {cpf:'***.333.444-**', idsegmento:1, cesta:'Investimento', produto:'CDB',             prods:2, valor:120000,  pa:0,      posicao:850,  horasNaFila:11}
       ]
 
       const _Q2V2_THRESH = { 5: 200000, 10: 100000, 20: 50000 }
@@ -3687,6 +3701,16 @@
         _renderQ2v2()
       }
 
+      function _q2v2SegmentChange() {
+        _q2v2Segment = parseInt(document.getElementById('q2v2-segment').value)
+        _renderQ2v2()
+      }
+
+      function _q3v2SegmentChange() {
+        _q3v2Segment = parseInt(document.getElementById('q3v2-segment').value)
+        _renderQ3v2()
+      }
+
       function _renderQ2v2() {
         const _now = new Date()
         const _fmt = d => d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
@@ -3694,11 +3718,12 @@
         if (_ri2) _ri2.textContent = `Atualizado às ${_fmt(_now)} · próx. atualização às ${_fmt(new Date(_now.getTime() + 3600000))}`
 
         const minPA     = _Q2V2_THRESH[_q2v2Threshold]
-        const allScores = Q2_DATA.map(_calcVipScore).sort((a, b) => b - a)
+        const segData   = _q2v2Segment ? Q2_DATA.filter(r => r.idsegmento === _q2v2Segment) : Q2_DATA
+        const allScores = segData.map(_calcVipScore).sort((a, b) => b - a)
         const thresh5   = allScores[Math.ceil(allScores.length * 0.05) - 1]
         const thresh20  = allScores[Math.ceil(allScores.length * 0.20) - 1]
 
-        const visible = Q2_DATA
+        const visible = segData
           .filter(r => r.cesta !== 'Crédito' || r.pa > minPA)
           .map(r => ({ ...r, vipScore: Math.round(_calcVipScore(r)) }))
           .filter(r => r.vipScore >= 100000)
@@ -3770,7 +3795,8 @@
       }
 
       function fireQ2v2Action(cpf) {
-        const allScores = Q2_DATA.map(_calcVipScore).sort((a, b) => b - a)
+        const segData   = _q2v2Segment ? Q2_DATA.filter(r => r.idsegmento === _q2v2Segment) : Q2_DATA
+        const allScores = segData.map(_calcVipScore).sort((a, b) => b - a)
         const thresh5   = allScores[Math.ceil(allScores.length * 0.05) - 1]
         const thresh20  = allScores[Math.ceil(allScores.length * 0.20) - 1]
         const r = Q2_DATA.find(x => x.cpf === cpf)
@@ -3782,11 +3808,12 @@
       }
 
       function applyAllQ2v2() {
-        const allScores = Q2_DATA.map(_calcVipScore).sort((a, b) => b - a)
+        const segData   = _q2v2Segment ? Q2_DATA.filter(r => r.idsegmento === _q2v2Segment) : Q2_DATA
+        const allScores = segData.map(_calcVipScore).sort((a, b) => b - a)
         const thresh5   = allScores[Math.ceil(allScores.length * 0.05) - 1]
         const thresh20  = allScores[Math.ceil(allScores.length * 0.20) - 1]
         const minPA = _Q2V2_THRESH[_q2v2Threshold]
-        Q2_DATA.filter(r => (r.cesta !== 'Crédito' || r.pa > minPA) && Math.round(_calcVipScore(r)) >= 100000 && !_q2v2States[r.cpf]).forEach(r => {
+        segData.filter(r => (r.cesta !== 'Crédito' || r.pa > minPA) && Math.round(_calcVipScore(r)) >= 100000 && !_q2v2States[r.cpf]).forEach(r => {
           const score  = Math.round(_calcVipScore(r))
           const action = _getQ2v2Action(score, r.horasNaFila, thresh5, thresh20)
           if (action) _q2v2States[r.cpf] = { confirmed: true, done: action.done, bg: action.bg, c: action.c }
@@ -3801,15 +3828,18 @@
         const _fmt = d => d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
         const _ri3 = document.getElementById('q3v2-refresh')
         if (_ri3) _ri3.textContent = `Atualizado às ${_fmt(_now)} · próx. atualização às ${_fmt(new Date(_now.getTime() + 3600000))}`
-        const rows = Q3_DATA.map(r => {
-          const capDiaria      = Math.round(r.atuados2d / 2)
-          const tempoRestante  = 48 - r.horasMaisAntigo
-          let status
-          if (capDiaria * 3 < r.aguardando || tempoRestante < 8)                              status = 'critico'
-          else if (capDiaria * 3 >= r.aguardando && tempoRestante >= 8 && tempoRestante <= 24) status = 'atencao'
-          else                                                                                  status = 'ok'
-          return { ...r, capDiaria, tempoRestante, status }
-        })
+        const rows = Q3_DATA
+          .map((r, i) => ({...r, _i: i}))
+          .filter(r => !_q3v2Segment || r.idsegmento === _q3v2Segment)
+          .map(r => {
+            const capDiaria      = Math.round(r.atuados2d / 2)
+            const tempoRestante  = 48 - r.horasMaisAntigo
+            let status
+            if (capDiaria * 3 < r.aguardando || tempoRestante < 8)                              status = 'critico'
+            else if (capDiaria * 3 >= r.aguardando && tempoRestante >= 8 && tempoRestante <= 24) status = 'atencao'
+            else                                                                                  status = 'ok'
+            return { ...r, capDiaria, tempoRestante, status }
+          })
 
         const nCritico   = rows.filter(r => r.status === 'critico').length
         const nAtencao   = rows.filter(r => r.status === 'atencao').length
@@ -3829,7 +3859,9 @@
 
         const uberBadge = `<span style="background:#f3f4f6;color:#6b7280;border-radius:5px;padding:2px 7px;font-size:10px;font-style:italic;margin-left:5px">Uber-like — em desenvolvimento</span>`
 
-        document.getElementById('q3v2-body').innerHTML = rows.map((r, i) => {
+        document.getElementById('q3v2-count').textContent = rows.length
+        document.getElementById('q3v2-body').innerHTML = rows.map(r => {
+          const i     = r._i
           const scfg  = statusCfg[r.status]
           const state = _q3v2States[i]
 
@@ -3873,6 +3905,7 @@
 
       function applyAllQ3v2() {
         Q3_DATA.forEach((r, i) => {
+          if (_q3v2Segment && r.idsegmento !== _q3v2Segment) return
           const capDiaria     = Math.round(r.atuados2d / 2)
           const tempoRestante = 48 - r.horasMaisAntigo
           const status = (capDiaria * 3 < r.aguardando || tempoRestante < 8) ? 'critico'
