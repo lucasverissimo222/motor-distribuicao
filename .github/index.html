@@ -3557,7 +3557,7 @@
 
       function _renderQ2v2() {
         const cfg     = _Q2V2_CFG[_q2v2Threshold]
-        const clients = BASE_LEADS.filter(r => r.pa > cfg.minPA).sort((a, b) => b.pa - a.pa)
+        const clients = BASE_LEADS.filter(r => r.pa > cfg.minPA).sort((a, b) => b.pa - a.pa).slice(0, 15)
         const jaFila1 = clients.filter(c => c.fila === 1).length
         const pendentes = clients.filter(c => !_q2v2States[c.cpf]).length
         document.getElementById('q2v2-count').textContent = clients.length
