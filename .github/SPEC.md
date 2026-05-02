@@ -1,4 +1,4 @@
-# Motor de Distribuição — Spec v4.0
+# Motor de Distribuição — Spec v5.0
 
 ## Visão Geral
 
@@ -165,9 +165,15 @@ Checkboxes por linha + select-all para ação em lote.
 
 ## View — Insights v2
 
+**Auto-refresh:** todas as três tabelas (Q1, Q2, Q3 v2) têm `setInterval` de 3600000ms (1h) iniciado em `renderInsightsV2`. Cada render function atualiza seu próprio indicador "Atualizado às HH:MM · próx. atualização às HH:MM" no header do card. Estados confirmados (`_ruleStates`, `_q2v2States`, `_q3v2States`) são preservados — o refresh só re-renderiza os dados.
+
+---
+
 ### Q1 v2 — Performance por Funcional + Criar Regra
 
 Mesma tabela do Q1 v1, com coluna extra **Ação** por linha e métricas no topo.
+
+**Header do card:** indicador de refresh + badge âmbar "Conversão: base D-1 · atualiza diariamente" (tooltip explica que leads ativos atualizam a cada hora, conversão é D-1).
 
 **Métricas:**
 
@@ -181,27 +187,37 @@ Mesma tabela do Q1 v1, com coluna extra **Ação** por linha e métricas no topo
 **Botão "+ Criar regra"** por linha abre modal com **3 etapas (stepper visual no topo):**
 
 #### Etapa 1 — Preview
-- Leitura: funcional, carteira, produto predominante, conversão 30d.
-- Botão: "Próximo →"
+
+Exibe dois campos de produto com separação visual clara:
+
+- **Produto da carteira:** `produtoPredominante` — exibido em cor secundária como contexto ("onde o funcional está hoje")
+- **Melhor produto (30d):** `maisVendido30d` — destaque em laranja `#F97316`
+- **Conversão (30d):** taxa de conversão do funcional
+- Badge de confirmação ao fundo: "✓ Regra será criada para: [MAIS_VENDIDO]" com fundo laranja
+
+Botão: "Próximo →"
 
 #### Etapa 2 — Tipo de regra
+
 - Radio: **Prioritário** (funcional recebe primeiro, outros também) / **Exclusivo** (apenas esse funcional recebe) / **Teste** (expira automaticamente).
 - Campo "Expirar em X dias" aparece somente quando Teste está selecionado.
 - Botões: "← Voltar" / "Próximo →"
 
 #### Etapa 3 — Origem dos leads
-- Título dinâmico: "De onde vêm os leads de [PRODUTO]?"
+
+- Título dinâmico: "De onde vêm os leads de **[MAIS_VENDIDO]**?" — usa o `maisVendido30d`, não o predominante.
 - Subtítulo: "Selecione as origens que esse funcional poderá visualizar"
 - Mini-tabela: checkbox | Origem | Leads ativos | Região | Dineg
 - Primeira linha: "Todas as carteiras" (soma total). Se marcada, desmarca as demais automaticamente.
-- 4 carteiras geradas deterministicamente a partir do nome do produto (`_getOrigemData(produto)`).
+- 4 carteiras geradas deterministicamente a partir de `maisVendido30d` via `_getOrigemData(produto)`.
 - Se outra carteira for marcada, "Todas" é desmarcada.
 - Botões: "← Voltar" / "Confirmar regra"
 
-**Ao confirmar:** badge verde na linha: `✓ Regra criada — [Tipo] · [Origem]`
-(ex: "Regra criada — Prioritário · 01_6001" ou "Regra criada — Exclusivo · Todas")
+**Ao confirmar:** state grava `{ tipo, expiry, origem, produto: maisVendido30d }`. Badge verde na linha:
+`✓ Regra criada — [Tipo] · [Produto] · [Origem]`
+(ex: "Regra criada — Prioritário · LCI · 01_4094" ou "Regra criada — Exclusivo · CDC · Todas")
 
-**"Aplicar todos":** cria regras Prioritárias com origem "Todas" para todos os funcionais sem regra.
+**"Aplicar todos":** cria regras Prioritárias com origem "Todas" e `produto = maisVendido30d` para todos os funcionais sem regra.
 
 **Modal:** fecha com Esc, click no overlay ou × no header.
 
@@ -209,13 +225,19 @@ Mesma tabela do Q1 v1, com coluna extra **Ação** por linha e métricas no topo
 
 ### Q2 v2 — Priorização de Clientes (VIP Score · Fila 2)
 
-Mostra os 7 clientes estáticos da Fila 2 (`Q2_DATA`), filtrados pelo corte de PA do dropdown e ordenados por **VIP Score decrescente**.
+Mostra clientes estáticos da Fila 2 (`Q2_DATA`), filtrados pelo threshold de PA + piso de VIP Score, ordenados por **VIP Score decrescente**.
 
 **Fórmula VIP Score:**
 ```
 vipScore = (pa × 0.5) + (valor × 0.3) + (prods × 0.1) + (horasNaFila × 0.1)
 ```
-Exibido como número inteiro.
+Exibido como número inteiro. Para clientes não-Crédito, `pa = 0` — pontuam apenas por valor, produtos e urgência.
+
+**Regra de exibição:**
+```
+mostrar se: vipScore >= 100000 E (cesta !== 'Crédito' OU pa > threshold_ativo)
+```
+Clientes não-Crédito sempre passam no filtro de cesta (pa = 0 por definição), mas ainda precisam de vipScore ≥ 100000.
 
 **Dropdown de threshold:**
 
@@ -225,7 +247,18 @@ Exibido como número inteiro.
 | Top 10% | PA > R$100k (padrão) |
 | Top 20% | PA > R$50k           |
 
-**Colunas:** CPF | Nº Produtos | Valor Acumulado | PA | VIP Score | Hrs na fila | Fila atual | Ação sugerida
+**Colunas:** CPF | Cesta | Produto | Nº Produtos | Valor Acumulado | PA | VIP Score | Hrs na fila | Fila atual | Ação sugerida
+
+**Badge de Cesta:**
+
+| Cesta        | Cor    |
+| ------------ | ------ |
+| Crédito      | Verde  |
+| Investimento | Azul   |
+| Conveniência | Âmbar  |
+| Recuperação  | Cinza  |
+
+**Coluna PA:** exibe valor em verde para Crédito; exibe "—" para não-Crédito (pa = 0).
 
 **Badge VIP Score:** verde se top 5% · âmbar se top 20% · sem badge abaixo disso (percentis calculados sobre todos os 7 registros de `Q2_DATA`).
 
@@ -233,38 +266,40 @@ Exibido como número inteiro.
 
 **Lógica de ação (em ordem de prioridade):**
 
-| Condição                            | Ação                      | Cor     |
-| ----------------------------------- | ------------------------- | ------- |
+| Condição                            | Ação                      | Cor      |
+| ----------------------------------- | ------------------------- | -------- |
 | VIP top 5% **e** hrs > 20h          | "Mover fila 1 urgente"    | Vermelho |
-| VIP top 5%                          | "Mover fila 1"            | Azul    |
-| VIP top 20% **e** hrs > 20h         | "Disparar PCM"            | Âmbar   |
-| VIP top 20%                         | "Subir posição"           | Verde   |
-| Demais                              | "Monitorar" (texto, sem botão) | —  |
+| VIP top 5%                          | "Mover fila 1"            | Azul     |
+| VIP top 20% **e** hrs > 20h         | "Disparar PCM"            | Âmbar    |
+| VIP top 20%                         | "Subir posição"           | Verde    |
+| Demais                              | "Monitorar" (texto, sem botão) | —   |
 
 Linha não some ao confirmar — badge de ação confirmada permanece. Estado keyed por CPF; troca de threshold preserva ações já aplicadas.
 
-**"Aplicar todos":** confirma todas as linhas com ação disponível no threshold atual.
+**"Aplicar todos":** confirma todas as linhas visíveis com ação disponível.
 
-**Métricas:**
+**Métricas — todas contam apenas o conjunto visível no threshold atual:**
 
-| Card                  | Descrição                              |
-| --------------------- | -------------------------------------- |
-| Total no threshold    | Clientes acima do corte de PA          |
-| VIP Top 5%            | Count com vipScore ≥ thresh5           |
-| Urgente (hrs > 20h)   | Count com horasNaFila > 20             |
-| Candidatos fila 1     | Count com vipScore ≥ thresh5 (absoluto) |
+| Card                  | Descrição                                       |
+| --------------------- | ----------------------------------------------- |
+| Total no threshold    | visible.length                                  |
+| VIP Top 5%            | visible com vipScore ≥ thresh5                  |
+| Urgente (hrs > 20h)   | visible com horasNaFila > 20                    |
+| Candidatos fila 1     | visible com vipScore ≥ thresh5 (igual VIP Top 5%) |
+
+**Nota visual** abaixo da tabela: "Clientes sem PA (Investimento, Conveniência, Recuperação) pontuam apenas por valor acumulado, produtos e urgência."
 
 **Dados fake (`Q2_DATA`):**
 
 ```js
 [
-  { cpf:'***.456.789-**', prods:7, valor:1200000, pa:280000, posicao:1240, horasNaFila:22 },
-  { cpf:'***.123.456-**', prods:6, valor:890000,  pa:195000, posicao:980,  horasNaFila:18 },
-  { cpf:'***.789.012-**', prods:5, valor:540000,  pa:120000, posicao:612,  horasNaFila:9  },
-  { cpf:'***.321.654-**', prods:4, valor:320000,  pa:88000,  posicao:380,  horasNaFila:6  },
-  { cpf:'***.654.321-**', prods:3, valor:210000,  pa:45000,  posicao:290,  horasNaFila:14 },
-  { cpf:'***.111.222-**', prods:2, valor:180000,  pa:38000,  posicao:510,  horasNaFila:21 },
-  { cpf:'***.333.444-**', prods:2, valor:120000,  pa:25000,  posicao:850,  horasNaFila:11 },
+  { cpf:'***.456.789-**', cesta:'Crédito',      produto:'Crédito Pessoal', prods:7, valor:1200000, pa:280000, posicao:1240, horasNaFila:22 },
+  { cpf:'***.123.456-**', cesta:'Crédito',      produto:'Consórcio',       prods:6, valor:890000,  pa:195000, posicao:980,  horasNaFila:18 },
+  { cpf:'***.789.012-**', cesta:'Investimento', produto:'LCI',             prods:5, valor:540000,  pa:0,      posicao:612,  horasNaFila:9  },
+  { cpf:'***.321.654-**', cesta:'Crédito',      produto:'CDC',             prods:4, valor:320000,  pa:88000,  posicao:380,  horasNaFila:6  },
+  { cpf:'***.654.321-**', cesta:'Conveniência', produto:'Seguro Vida',     prods:3, valor:210000,  pa:0,      posicao:290,  horasNaFila:14 },
+  { cpf:'***.111.222-**', cesta:'Crédito',      produto:'Crédito Pessoal', prods:2, valor:180000,  pa:38000,  posicao:510,  horasNaFila:21 },
+  { cpf:'***.333.444-**', cesta:'Investimento', produto:'CDB',             prods:2, valor:120000,  pa:0,      posicao:850,  horasNaFila:11 },
 ]
 ```
 
@@ -272,51 +307,68 @@ Linha não some ao confirmar — badge de ação confirmada permanece. Estado ke
 
 ### Q3 v2 — Saúde das Carteiras
 
-Análise de capacidade vs demanda por carteira na Fila 2. 6 linhas estáticas (`Q3_DATA`).
+Análise de capacidade vs demanda por carteira na Fila 2, com urgência temporal. 6 linhas estáticas (`Q3_DATA`).
 
 **Fórmulas:**
 ```
-capDiaria = Math.round(atuados2d / 2)
+capDiaria     = Math.round(atuados2d / 2)
+tempoRestante = 48 - horasMaisAntigo
 
-Status:
-  OK      → aguardando ≤ capDiaria × 3
-  Atenção → aguardando ≤ capDiaria × 7
-  Crítico → aguardando  > capDiaria × 7
+Status (primeira regra que bater, ganha):
+  Crítico → capDiaria × 3 < aguardando  OU  tempoRestante < 8
+  Atenção → capDiaria × 3 >= aguardando  E  8 ≤ tempoRestante ≤ 24
+  OK      → capDiaria × 3 >= aguardando  E  tempoRestante > 24
 ```
 
-**Colunas:** Carteira | Aguardando | Atuados 2d | Cap. diária | Status | Ação
+**Colunas:** Carteira | Aguardando | Atuados 2d | Cap. diária | Lead + antigo | Tempo restante | Status | Ação
+
+**Badge "Lead + antigo"** (`horasMaisAntigo`):
+
+| Condição             | Cor     | Texto       |
+| -------------------- | ------- | ----------- |
+| horasMaisAntigo > 40 | Vermelho | "Xh na fila" |
+| horasMaisAntigo > 24 | Âmbar   | "Xh na fila" |
+| ≤ 24                 | Cinza   | "Xh na fila" |
+
+**Badge "Tempo restante"** (`48 - horasMaisAntigo`):
+
+| Condição            | Cor    | Texto          |
+| ------------------- | ------ | -------------- |
+| tempoRestante < 8   | Vermelho | "Xh restantes" |
+| tempoRestante < 24  | Âmbar  | "Xh restantes" |
+| ≥ 24                | Verde  | "Xh restantes" |
 
 **Ações por status:**
 
-| Status  | Ação disponível           |
-| ------- | ------------------------- |
-| OK      | "Nenhuma" (texto)         |
-| Atenção | Botão "Ativar uber-like"  |
-| Crítico | Botão "PCM + Uber-like"   |
+| Status  | Ação                                                                |
+| ------- | ------------------------------------------------------------------- |
+| OK      | "Nenhuma" (texto)                                                   |
+| Atenção | Badge "Uber-like — em desenvolvimento" (sem botão)                  |
+| Crítico | Botão "Disparar PCM" + badge "Uber-like — em desenvolvimento"       |
 
-Linha confirmada exibe badge: "✓ Uber-like ativado" ou "✓ PCM + Uber-like".
+Ao confirmar Crítico: badge "✓ PCM disparado" + "Uber-like — em desenvolvimento".
 
-**"Aplicar todos":** confirma Atenção e Crítico com botão ativo; ignora OK.
+**"Aplicar todos":** confirma apenas linhas com status Crítico; ignora Atenção e OK.
 
 **Métricas:**
 
-| Card              | Descrição                      |
-| ----------------- | ------------------------------ |
-| Total monitorado  | Q3_DATA.length (6)             |
-| Crítico           | Count status === 'critico'     |
-| Atenção           | Count status === 'atencao'     |
-| OK                | Count status === 'ok'          |
+| Card              | Descrição                         |
+| ----------------- | --------------------------------- |
+| Total monitorado  | Q3_DATA.length (6)                |
+| Crítico           | Count status === 'critico'        |
+| Atenção           | Count status === 'atencao'        |
+| Expirando em 8h   | Count tempoRestante < 8 (vermelho) |
 
 **Dados fake (`Q3_DATA`):**
 
 ```js
 [
-  { cart:'01_5412', aguardando:1240, atuados2d:12  },
-  { cart:'01_2387', aguardando:960,  atuados2d:420 },
-  { cart:'01_9001', aguardando:780,  atuados2d:680 },
-  { cart:'01_1122', aguardando:620,  atuados2d:55  },
-  { cart:'01_3344', aguardando:440,  atuados2d:390 },
-  { cart:'01_7788', aguardando:360,  atuados2d:310 },
+  { cart:'01_5412', aguardando:1240, atuados2d:12,  horasMaisAntigo:44 },
+  { cart:'01_2387', aguardando:960,  atuados2d:420, horasMaisAntigo:38 },
+  { cart:'01_9001', aguardando:780,  atuados2d:680, horasMaisAntigo:18 },
+  { cart:'01_1122', aguardando:620,  atuados2d:55,  horasMaisAntigo:31 },
+  { cart:'01_3344', aguardando:440,  atuados2d:390, horasMaisAntigo:12 },
+  { cart:'01_7788', aguardando:360,  atuados2d:310, horasMaisAntigo:6  },
 ]
 ```
 
@@ -373,14 +425,14 @@ Todos os dados gerados deterministicamente via progressões aritméticas — sem
 | Variável           | Tipo   | Descrição                                              |
 | ------------------ | ------ | ------------------------------------------------------ |
 | `_insightsReady`   | bool   | Flag lazy-init Insights v1                             |
-| `_insightsV2Ready` | bool   | Flag lazy-init Insights v2                             |
+| `_insightsV2Ready` | bool   | Flag lazy-init Insights v2 (setIntervals iniciados aqui) |
 | `_q2Changes`       | array  | Log de alterações Q2 v1 para exportação CSV            |
 | `_q2v2Threshold`   | number | Percentil ativo no Q2 v2 (5, 10 ou 20)                |
 | `_ruleModalRow`    | number | Índice da linha em edição no modal de regra Q1 v2      |
 | `_ruleModalStep`   | number | Etapa ativa no modal de regra (1, 2 ou 3)              |
-| `_ruleStates`      | object | Regras confirmadas em Q1 v2 (keyed por índice de linha)|
-| `_q2v2States`      | object | Ações aplicadas em Q2 v2 (keyed por CPF)               |
-| `_q3v2States`      | object | Estado por linha Q3 v2 (confirmed)                     |
+| `_ruleStates`      | object | Regras confirmadas em Q1 v2 — `{ tipo, expiry, origem, produto }` keyed por índice |
+| `_q2v2States`      | object | Ações aplicadas em Q2 v2 — `{ confirmed, done, bg, c }` keyed por CPF |
+| `_q3v2States`      | object | Estado por linha Q3 v2 — `{ confirmed }` keyed por índice |
 
 ---
 
