@@ -736,6 +736,9 @@
         background: var(--tag-bg);
         color: var(--tag-text);
       }
+      .tag-amber  { background: #fffbeb; color: #92400e; }
+      .tag-red-s  { background: #fef2f2; color: #991b1b; }
+      .tag-purple { background: #f5f3ff; color: #6d28d9; }
 
       td.empty-cell {
         color: #d6cfc8;
@@ -1664,6 +1667,16 @@
           "
           >Insights</a
         >
+        <a
+          class="nav-item"
+          data-view="insights-v2"
+          href="#"
+          onclick="
+            showView('insights-v2')
+            return false
+          "
+          >Insights v2</a
+        >
 
         <p class="nav-label">Gestão</p>
         <a
@@ -2039,6 +2052,120 @@
                 </tr>
               </thead>
               <tbody id="rules-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ INSIGHTS V2 VIEW ══════════════════════════════════════════════════════ -->
+      <div class="content" id="view-insights-v2" style="display: none">
+        <div class="page-head">
+          <h1>Insights v2</h1>
+          <p>Base D-1 · Análise avançada de risco · Scoring por pressão de carteira</p>
+        </div>
+
+        <!-- Q1 v2 – Performance + Criar regra -->
+        <div class="i-card" style="margin-bottom:18px">
+          <div class="i-card-title">
+            <span class="badge">1</span>
+            Performance por Funcional — criar regras no Motor
+            <span class="count-pill" id="q1v2-count">10</span>
+            <button onclick="applyAllQ1v2()" style="margin-left:auto;background:var(--orange-lt);border:1px solid var(--orange-mid);color:var(--orange-dark);border-radius:6px;padding:3px 12px;font-size:11px;cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0">Aplicar todos</button>
+          </div>
+          <div id="q1v2-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 14px"></div>
+          <div style="overflow-x:auto">
+            <table style="font-size:12px">
+              <colgroup>
+                <col style="width:10%"><col style="width:10%">
+                <col style="width:20%"><col style="width:18%">
+                <col style="width:10%"><col style="width:8%">
+                <col style="width:24%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Funcional</th>
+                  <th>Carteira</th>
+                  <th>Produto predominante</th>
+                  <th>Mais vendido (30d)</th>
+                  <th style="text-align:center">Conversão</th>
+                  <th style="text-align:center">Leads at.</th>
+                  <th style="text-align:center">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="q1v2-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Q2 v2 – Priorização por percentil PA -->
+        <div class="i-card" style="margin-bottom:18px">
+          <div class="i-card-title">
+            <span class="badge">2</span>
+            Priorização de Clientes — threshold dinâmico por PA
+            <select id="q2v2-threshold" onchange="_q2v2ThresholdChange()" style="margin-left:8px;border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;background:var(--surface);color:var(--text);font-weight:600;text-transform:none;letter-spacing:0">
+              <option value="5">Top 5% (PA &gt; R$200k)</option>
+              <option value="10" selected>Top 10% (PA &gt; R$100k)</option>
+              <option value="20">Top 20% (PA &gt; R$50k)</option>
+            </select>
+            <span class="count-pill" id="q2v2-count">—</span>
+            <button onclick="applyAllQ2v2()" style="margin-left:auto;background:var(--orange-lt);border:1px solid var(--orange-mid);color:var(--orange-dark);border-radius:6px;padding:3px 12px;font-size:11px;cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0">Aplicar todos</button>
+          </div>
+          <div id="q2v2-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 14px"></div>
+          <div style="overflow-x:auto">
+            <table style="font-size:12px">
+              <colgroup>
+                <col style="width:17%"><col style="width:9%">
+                <col style="width:17%"><col style="width:17%">
+                <col style="width:13%"><col style="width:27%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>CPF</th>
+                  <th style="text-align:center">Nº Prod.</th>
+                  <th style="text-align:right">Valor acumulado</th>
+                  <th style="text-align:right">Pré-aprovado</th>
+                  <th style="text-align:center">Fila atual</th>
+                  <th style="text-align:center">Ação sugerida</th>
+                </tr>
+              </thead>
+              <tbody id="q2v2-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Q3 v2 – Leads em Risco / Pressão -->
+        <div class="i-card">
+          <div class="i-card-title">
+            <span class="badge" style="background:var(--danger)">!</span>
+            Leads em Risco — Pressão por carteira · Score de prioridade
+            <span class="count-pill" id="q3v2-count">6</span>
+            <button onclick="applyAllQ3v2()" style="margin-left:auto;background:var(--orange-lt);border:1px solid var(--orange-mid);color:var(--orange-dark);border-radius:6px;padding:3px 12px;font-size:11px;cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0">Aplicar todos</button>
+          </div>
+          <div id="q3v2-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 14px"></div>
+          <div style="overflow-x:auto">
+            <table style="font-size:11px">
+              <colgroup>
+                <col style="width:6%"><col style="width:8%">
+                <col style="width:9%"><col style="width:9%">
+                <col style="width:8%"><col style="width:10%">
+                <col style="width:9%"><col style="width:7%">
+                <col style="width:14%"><col style="width:20%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Horas</th>
+                  <th style="text-align:right">Aguard.</th>
+                  <th>Carteira</th>
+                  <th>Funcional</th>
+                  <th style="text-align:right">Atuados 2d</th>
+                  <th style="text-align:center">Pressão / tend.</th>
+                  <th style="text-align:center">Conversão</th>
+                  <th style="text-align:center">Score</th>
+                  <th style="text-align:center">Zona</th>
+                  <th style="text-align:center">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="q3v2-body"></tbody>
             </table>
           </div>
         </div>
@@ -3285,25 +3412,299 @@
       }
 
       function showView(v) {
-        document.getElementById('view-main').style.display =
-          v === 'main' ? '' : 'none'
-        document.getElementById('view-insights').style.display =
-          v === 'insights' ? '' : 'none'
-        document.getElementById('topbar-title').textContent =
-          v === 'insights' ? 'Insights' : 'Motor de Distribuição'
+        const titles = { main: 'Motor de Distribuição', insights: 'Insights', 'insights-v2': 'Insights v2' }
+        document.getElementById('view-main').style.display        = v === 'main'        ? '' : 'none'
+        document.getElementById('view-insights').style.display    = v === 'insights'    ? '' : 'none'
+        document.getElementById('view-insights-v2').style.display = v === 'insights-v2' ? '' : 'none'
+        document.getElementById('topbar-title').textContent = titles[v] || 'Motor de Distribuição'
         document.querySelectorAll('.nav-item[data-view]').forEach(el => {
           el.classList.toggle('active', el.dataset.view === v)
         })
-        if (v === 'insights') renderInsights()
+        if (v === 'insights')    renderInsights()
+        if (v === 'insights-v2') renderInsightsV2()
       }
 
       document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') closePCM()
+        if (e.key === 'Escape') { closePCM(); closeRuleModal() }
       })
 
       initAllDl()
       renderRules()
       renderSeRows()
+
+      // ── INSIGHTS V2 ──────────────────────────────────────────────────────────
+
+      const Q3_DATA = [
+        {hrs:24, cart:'01_5412', func:'102938475', aguardando:1240, atuados2d:12,  conv:0.48, recebidos:320, trend:'up'},
+        {hrs:20, cart:'01_2387', func:'987654321', aguardando:960,  atuados2d:420, conv:0.41, recebidos:890, trend:'flat'},
+        {hrs:16, cart:'01_9001', func:'112233445', aguardando:780,  atuados2d:680, conv:0.37, recebidos:45,  trend:'down'},
+        {hrs:12, cart:'01_1122', func:'556677889', aguardando:620,  atuados2d:55,  conv:0.29, recebidos:210, trend:'up'},
+        {hrs:8,  cart:'01_3344', func:'667788990', aguardando:440,  atuados2d:390, conv:0.24, recebidos:180, trend:'flat'},
+        {hrs:5,  cart:'01_7788', func:'334455667', aguardando:360,  atuados2d:310, conv:0.20, recebidos:95,  trend:'down'}
+      ]
+
+      let _insightsV2Ready = false
+      let _q2v2Threshold   = 10
+      let _ruleModalRow    = null
+      let _ruleStates      = {}
+      let _q2v2States      = {}
+      let _q3v2States      = {}
+      let uberlikeUsados   = 0
+
+      function renderInsightsV2() {
+        if (_insightsV2Ready) return
+        _insightsV2Ready = true
+        _renderQ1v2()
+        _renderQ2v2()
+        _renderQ3v2()
+      }
+
+      // shared metric cards helper
+      function _renderMetrics(containerId, items) {
+        document.getElementById(containerId).innerHTML = items.map(m => `
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px">
+            <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">${m.label}</div>
+            <div style="font-size:22px;font-weight:800;color:${m.color};line-height:1">${m.value}</div>
+          </div>`).join('')
+      }
+
+      // ── Q1 v2 ──────────────────────────────────────────────────────────────
+
+      function _renderQ1v2() {
+        document.getElementById('q1v2-count').textContent = TOP10_FUNC.length
+        const convVals = TOP10_FUNC.map(f => parseFloat(f.conversao))
+        const alta    = convVals.filter(c => c >= 55).length
+        const baixa   = convVals.filter(c => c < 40).length
+        const criadas = Object.keys(_ruleStates).length
+        _renderMetrics('q1v2-metrics', [
+          { label: 'Total analisado',      value: TOP10_FUNC.length, color: 'var(--text)' },
+          { label: 'Conversão alta (≥55%)',value: alta,              color: 'var(--success)' },
+          { label: 'Conversão baixa (<40%)',value: baixa,            color: 'var(--danger)' },
+          { label: 'Regras criadas',        value: criadas,           color: 'var(--orange)' }
+        ])
+        document.getElementById('q1v2-body').innerHTML = TOP10_FUNC.map((f, i) => {
+          const state = _ruleStates[i]
+          const acao = state
+            ? `<span class="tag tag-green" style="font-size:10px;padding:2px 8px">✓ ${_ruleTipoLabel(state.tipo)}${state.expiry ? ' · ' + state.expiry + 'd' : ''}</span>`
+            : `<button onclick="openRuleModal(${i})" style="background:var(--orange-lt);border:1px solid var(--orange-mid);color:var(--orange-dark);border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">+ Criar regra</button>`
+          return `
+    <tr>
+      <td style="font-family:monospace;font-size:11px">${f.funcional}</td>
+      <td><span class="tag tag-indigo" style="font-size:10px;padding:2px 6px">${f.carteira}</span></td>
+      <td>${f.produtoPredominante}</td>
+      <td><span class="tag tag-orange" style="font-size:10px;padding:2px 6px">${f.maisVendido30d}</span></td>
+      <td style="text-align:center"><span class="tag tag-green" style="font-size:10px;padding:2px 6px">${f.conversao}</span></td>
+      <td style="text-align:center">${f.leadsAtivos}</td>
+      <td style="text-align:center">${acao}</td>
+    </tr>`
+        }).join('')
+      }
+
+      function _ruleTipoLabel(tipo) {
+        return { prioritario:'Prioritário', exclusivo:'Exclusivo', teste:'Teste' }[tipo] || tipo
+      }
+
+      function applyAllQ1v2() {
+        TOP10_FUNC.forEach((_, i) => {
+          if (!_ruleStates[i]) _ruleStates[i] = { tipo: 'prioritario', expiry: null }
+        })
+        _renderQ1v2()
+      }
+
+      function openRuleModal(rowIdx) {
+        _ruleModalRow = rowIdx
+        const f = TOP10_FUNC[rowIdx]
+        document.getElementById('rule-preview').innerHTML =
+          `<strong>Funcional:</strong> <span style="font-family:monospace">${f.funcional}</span> &nbsp;·&nbsp; <strong>Carteira:</strong> ${f.carteira}<br>` +
+          `<strong>Produto:</strong> ${f.produtoPredominante} &nbsp;·&nbsp; <strong>Conversão (30d):</strong> ${f.conversao}`
+        document.querySelectorAll('input[name="rule-type"]').forEach(r => r.checked = false)
+        document.getElementById('rule-expiry-field').style.display = 'none'
+        document.getElementById('modal-rule-v2').style.display = 'flex'
+      }
+
+      function closeRuleModal() {
+        const el = document.getElementById('modal-rule-v2')
+        if (el) el.style.display = 'none'
+        _ruleModalRow = null
+      }
+
+      function handleRuleTypeChange(val) {
+        document.getElementById('rule-expiry-field').style.display = val === 'teste' ? '' : 'none'
+      }
+
+      function confirmRuleV2() {
+        const sel = document.querySelector('input[name="rule-type"]:checked')
+        if (!sel) { alert('Selecione um tipo de regra.'); return }
+        const expiry = sel.value === 'teste'
+          ? (parseInt(document.getElementById('rule-expiry-days').value) || 7) : null
+        _ruleStates[_ruleModalRow] = { tipo: sel.value, expiry }
+        closeRuleModal()
+        _renderQ1v2()
+      }
+
+      // ── Q2 v2 ──────────────────────────────────────────────────────────────
+
+      const _Q2V2_CFG = {
+        5:  { minPA:200000, action:'Fila 1 imediato',    aC:'#991b1b', aBg:'#fef2f2' },
+        10: { minPA:100000, action:'Fila 1 com posição', aC:'#c2410c', aBg:'#fff7ed' },
+        20: { minPA: 50000, action:'Subir posição',      aC:'#1d4ed8', aBg:'#eff6ff' }
+      }
+
+      function _q2v2ThresholdChange() {
+        _q2v2Threshold = parseInt(document.getElementById('q2v2-threshold').value)
+        _renderQ2v2()
+      }
+
+      function _renderQ2v2() {
+        const cfg     = _Q2V2_CFG[_q2v2Threshold]
+        const clients = BASE_LEADS.filter(r => r.pa > cfg.minPA).sort((a, b) => b.pa - a.pa)
+        const jaFila1 = clients.filter(c => c.fila === 1).length
+        const pendentes = clients.filter(c => !_q2v2States[c.cpf]).length
+        document.getElementById('q2v2-count').textContent = clients.length
+        _renderMetrics('q2v2-metrics', [
+          { label: 'Total elegíveis',     value: clients.length,            color: 'var(--text)' },
+          { label: 'Já em Fila 1',        value: jaFila1,                   color: 'var(--success)' },
+          { label: 'Fora da Fila 1',      value: clients.length - jaFila1,  color: 'var(--danger)' },
+          { label: 'Ações pendentes',     value: pendentes,                 color: 'var(--orange)' }
+        ])
+        document.getElementById('q2v2-body').innerHTML = clients.map(c => {
+          const done = _q2v2States[c.cpf]
+          const acao = done
+            ? `<span class="tag tag-green" style="font-size:10px;padding:2px 8px">✓ Aplicado</span>`
+            : `<button onclick="fireQ2v2Action('${c.cpf}')" style="background:${cfg.aBg};border:1px solid ${cfg.aC}30;color:${cfg.aC};border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">${cfg.action}</button>`
+          return `
+    <tr>
+      <td style="font-family:monospace;font-size:11px">${c.cpf}</td>
+      <td style="text-align:center"><strong>${c.nProdutos}</strong></td>
+      <td style="text-align:right">${c.valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</td>
+      <td style="text-align:right;font-weight:700;color:var(--success)">${c.pa.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</td>
+      <td style="text-align:center"><span class="tag ${c.fila===1?'tag-orange':'tag-indigo'}" style="font-size:10px;padding:2px 7px">Fila ${c.fila}</span></td>
+      <td style="text-align:center">${acao}</td>
+    </tr>`
+        }).join('')
+      }
+
+      function fireQ2v2Action(cpf) {
+        _q2v2States[cpf] = true
+        _renderQ2v2()
+      }
+
+      function applyAllQ2v2() {
+        const cfg = _Q2V2_CFG[_q2v2Threshold]
+        BASE_LEADS.filter(r => r.pa > cfg.minPA).forEach(c => { _q2v2States[c.cpf] = true })
+        _renderQ2v2()
+      }
+
+      // ── Q3 v2 ──────────────────────────────────────────────────────────────
+
+      function _getQ3Zone(pressao, conv) {
+        if (pressao > 10 && conv > 0.35) return 'roxa'
+        if (pressao > 10)                return 'vermelha'
+        if (pressao < 3  && conv > 0.30) return 'verde'
+        return 'amarela'
+      }
+
+      const _ZONE_CFG = {
+        roxa:     { bg:'#f5f3ff', color:'#6d28d9', label:'Segurar — buffer',      btnAcao: null },
+        vermelha: { bg:'#fef2f2', color:'#991b1b', label:'PCM urgente',           btnAcao:'pcm',     btnLabel:'Disparar PCM',     bBg:'#fef2f2', bC:'#991b1b' },
+        verde:    { bg:'#d1fae5', color:'#065f46', label:'Ativar uber-like',      btnAcao:'uber',    btnLabel:'Ativar uber-like', bBg:'#d1fae5', bC:'#065f46' },
+        amarela:  { bg:'#fffbeb', color:'#92400e', label:'Monitorar',             btnAcao:'monitor', btnLabel:'Marcar monitorado',bBg:'#fffbeb', bC:'#92400e' }
+      }
+
+      function _renderQ3v2() {
+        // compute pressão, zona e score por linha
+        const rows = Q3_DATA.map((r, i) => {
+          const pressao = r.aguardando / Math.max(r.atuados2d, 1)
+          const scoreRaw = Math.min(1 / pressao, 1) * 0.6 + r.conv * 0.4
+          const score = Math.round(scoreRaw * 100)
+          // marcar buffer para zona roxa na primeira passagem
+          if (!_q3v2States[i] && _getQ3Zone(pressao, r.conv) === 'roxa') {
+            _q3v2States[i] = { buffer: true }
+          }
+          const zona = (_q3v2States[i]?.buffer && pressao < 3) ? 'verde' : _getQ3Zone(pressao, r.conv)
+          return { ...r, pressao, score, zona }
+        })
+
+        const nRoxa   = rows.filter(r => r.zona === 'roxa').length
+        const nVerde  = rows.filter(r => r.zona === 'verde').length
+        const restante = Math.max(0, 200 - uberlikeUsados)
+        _renderMetrics('q3v2-metrics', [
+          { label: 'Total em risco',               value: rows.length, color: 'var(--text)' },
+          { label: 'Zona roxa — segurar',          value: nRoxa,       color: '#6d28d9' },
+          { label: 'Zona verde — uber-like disp.', value: nVerde,      color: 'var(--success)' },
+          { label: `Uber-likes restantes (${uberlikeUsados}/200)`, value: restante, color: restante > 0 ? 'var(--orange)' : 'var(--muted)' }
+        ])
+
+        document.getElementById('q3v2-body').innerHTML = rows.map((r, i) => {
+          const cfg   = _ZONE_CFG[r.zona]
+          const state = _q3v2States[i]
+
+          const hBg    = r.hrs >= 20 ? '#fef2f2' : r.hrs >= 12 ? '#fffbeb' : '#f3f4f6'
+          const hColor = r.hrs >= 20 ? 'var(--danger)' : r.hrs >= 12 ? '#92400e' : 'var(--muted)'
+          const tIcon  = r.trend === 'up' ? '▲' : r.trend === 'down' ? '▼' : '—'
+          const tColor = r.trend === 'up' ? 'var(--danger)' : r.trend === 'down' ? 'var(--success)' : 'var(--muted)'
+
+          const lowConf = r.recebidos < 100
+          const convTxt = `${Math.round(r.conv * 100)}%${lowConf ? ' <span title="Volume baixo — dado pode não ser representativo" style="color:#f59e0b;cursor:help">⚠</span>' : ''}`
+
+          const sBg    = r.score >= 70 ? '#d1fae5' : r.score >= 45 ? '#fffbeb' : '#fef2f2'
+          const sColor = r.score >= 70 ? '#065f46' : r.score >= 45 ? '#92400e' : '#991b1b'
+
+          let acao
+          if (state?.confirmed) {
+            const cLabel = r.zona === 'verde' ? '✓ Uber-like ativado' : r.zona === 'vermelha' ? '✓ PCM disparado' : '✓ Monitorado'
+            acao = `<span style="font-size:10px;color:var(--muted);font-style:italic">${cLabel}</span>`
+          } else if (r.zona === 'roxa') {
+            if (state?.buffer && r.pressao < 3) {
+              acao = `<button onclick="fireQ3Action(${i},'uber')" style="background:#d1fae5;border:1px solid #6ee7b7;color:#065f46;border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">Ativar uber-like</button>`
+            } else {
+              acao = `<span style="font-size:10px;color:#6d28d9;font-weight:600">🔒 Em buffer</span>`
+            }
+          } else if (r.zona === 'verde' && uberlikeUsados >= 200) {
+            acao = `<span class="tag tag-amber" style="font-size:10px;padding:2px 8px">Limite do ciclo atingido</span>`
+          } else {
+            acao = `<button onclick="fireQ3Action(${i},'${r.zona}')" style="background:${cfg.bBg};border:1px solid ${cfg.bC}40;color:${cfg.bC};border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">${cfg.btnLabel}</button>`
+          }
+
+          return `
+    <tr>
+      <td style="text-align:center"><span class="tag" style="background:${hBg};color:${hColor};font-size:10px;padding:2px 5px;font-weight:700">${r.hrs}h</span></td>
+      <td style="text-align:right;font-weight:700">${r.aguardando.toLocaleString('pt-BR')}</td>
+      <td><span class="tag tag-indigo" style="font-size:10px;padding:2px 5px">${r.cart}</span></td>
+      <td style="font-family:monospace;font-size:10px">${r.func}</td>
+      <td style="text-align:right">${r.atuados2d.toLocaleString('pt-BR')}</td>
+      <td style="text-align:center">${r.pressao.toFixed(1)} <span style="color:${tColor};font-size:10px">${tIcon}</span></td>
+      <td style="text-align:center">${convTxt}</td>
+      <td style="text-align:center"><span style="display:inline-block;min-width:26px;padding:2px 4px;border-radius:5px;background:${sBg};color:${sColor};font-weight:800;font-size:11px">${r.score}</span></td>
+      <td style="text-align:center"><span class="tag" style="background:${cfg.bg};color:${cfg.color};font-size:10px;padding:2px 6px;border:1px solid ${cfg.color}30;white-space:nowrap">${cfg.label}</span></td>
+      <td style="text-align:center">${acao}</td>
+    </tr>`
+        }).join('')
+      }
+
+      function fireQ3Action(rowIdx, zona) {
+        if (zona === 'verde' || zona === 'uber') {
+          if (uberlikeUsados >= 200) return
+          uberlikeUsados++
+        }
+        _q3v2States[rowIdx] = { ..._q3v2States[rowIdx], confirmed: true, action: zona }
+        _renderQ3v2()
+      }
+
+      function applyAllQ3v2() {
+        Q3_DATA.forEach((r, i) => {
+          if (_q3v2States[i]?.confirmed) return
+          const pressao = r.aguardando / Math.max(r.atuados2d, 1)
+          const zona = _getQ3Zone(pressao, r.conv)
+          if (zona === 'roxa') return
+          if (zona === 'verde') {
+            if (uberlikeUsados >= 200) return
+            uberlikeUsados++
+          }
+          _q3v2States[i] = { ..._q3v2States[i], confirmed: true, action: zona }
+        })
+        _renderQ3v2()
+      }
     </script>
 
     <!-- ══ MODAL PCM WHATSAPP ═══════════════════════════════════════════════════ -->
@@ -3330,6 +3731,39 @@
             &#128203; Copiar mensagem
           </button>
           <button class="btn-ghost" onclick="closePCM()">Fechar</button>
+        </div>
+      </div>
+    </div>
+    <!-- ══ MODAL REGRA V2 ════════════════════════════════════════════════════ -->
+    <div id="modal-rule-v2" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center" onclick="if(event.target===this)closeRuleModal()">
+      <div style="background:#fff;border-radius:12px;padding:28px 32px;width:480px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,0.2)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="font-size:16px;font-weight:700;color:var(--text)">Criar regra no Motor</h3>
+          <button onclick="closeRuleModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1">×</button>
+        </div>
+        <div id="rule-preview" style="background:var(--orange-lt);border:1px solid var(--orange-mid);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:12px;line-height:1.8;color:var(--text)"></div>
+        <p style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.08em">Tipo de regra</p>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
+            <input type="radio" name="rule-type" value="prioritario" style="margin-top:3px" onchange="handleRuleTypeChange(this.value)" />
+            <span><strong>Prioritário</strong> — funcional recebe primeiro, outros também podem receber</span>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
+            <input type="radio" name="rule-type" value="exclusivo" style="margin-top:3px" onchange="handleRuleTypeChange(this.value)" />
+            <span><strong>Exclusivo</strong> — apenas esse funcional recebe esse produto</span>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
+            <input type="radio" name="rule-type" value="teste" style="margin-top:3px" onchange="handleRuleTypeChange(this.value)" />
+            <span><strong>Teste</strong> — regra expira automaticamente</span>
+          </label>
+        </div>
+        <div id="rule-expiry-field" style="display:none;margin-bottom:18px;padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Expirar em (dias)</label>
+          <input type="number" id="rule-expiry-days" min="1" max="90" value="7" style="border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;width:120px;color:var(--text)" />
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button onclick="closeRuleModal()" style="background:var(--border);border:none;border-radius:7px;padding:8px 20px;font-size:13px;cursor:pointer;color:var(--text)">Cancelar</button>
+          <button onclick="confirmRuleV2()" style="background:var(--orange);border:none;border-radius:7px;padding:8px 20px;font-size:13px;cursor:pointer;color:#fff;font-weight:700">Confirmar regra</button>
         </div>
       </div>
     </div>
