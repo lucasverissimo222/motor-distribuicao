@@ -2123,8 +2123,8 @@
                   <th>CPF</th>
                   <th style="text-align:center">Nº Prod.</th>
                   <th style="text-align:right">Valor acumulado</th>
-                  <th style="text-align:right">Pré-aprovado</th>
-                  <th style="text-align:center">Fila atual</th>
+                  <th style="text-align:right">PA</th>
+                  <th style="text-align:center">Posição fila 2</th>
                   <th style="text-align:center">Ação sugerida</th>
                 </tr>
               </thead>
@@ -3544,10 +3544,30 @@
 
       // ── Q2 v2 ──────────────────────────────────────────────────────────────
 
-      const _Q2V2_CFG = {
-        5:  { minPA:200000, action:'Fila 1 imediato',    aC:'#991b1b', aBg:'#fef2f2' },
-        10: { minPA:100000, action:'Fila 1 com posição', aC:'#c2410c', aBg:'#fff7ed' },
-        20: { minPA: 50000, action:'Subir posição',      aC:'#1d4ed8', aBg:'#eff6ff' }
+      const Q2_DATA = [
+        {cpf:'***.456.789-**', prods:7, valor:1200000, pa:280000, posicao:1240},
+        {cpf:'***.123.456-**', prods:6, valor:890000,  pa:195000, posicao:980},
+        {cpf:'***.789.012-**', prods:5, valor:540000,  pa:120000, posicao:612},
+        {cpf:'***.321.654-**', prods:4, valor:320000,  pa:88000,  posicao:380},
+        {cpf:'***.654.321-**', prods:3, valor:210000,  pa:45000,  posicao:290},
+        {cpf:'***.111.222-**', prods:2, valor:180000,  pa:38000,  posicao:510},
+        {cpf:'***.333.444-**', prods:2, valor:120000,  pa:25000,  posicao:850}
+      ]
+
+      const _Q2V2_THRESH = { 5: 200000, 10: 100000, 20: 50000 }
+
+      function _getQ2v2Zone(r) {
+        if (r.pa > 200000)                      return 'fila1'
+        if (r.pa > 100000 && r.posicao > 500)  return 'subir'
+        if (r.pa > 50000  && r.posicao > 1000) return 'pcm'
+        return 'monitor'
+      }
+
+      const _Q2V2_ZONE_CFG = {
+        fila1:   { btnLabel:'Mover para fila 1', bBg:'#eff6ff', bC:'#1d4ed8', doneLabel:'Movido para fila 1',    doneBg:'#eff6ff', doneC:'#1d4ed8' },
+        subir:   { btnLabel:'Subir posição',     bBg:'#d1fae5', bC:'#065f46', doneLabel:'Posição atualizada',    doneBg:'#d1fae5', doneC:'#065f46' },
+        pcm:     { btnLabel:'Disparar PCM',      bBg:'#fff7ed', bC:'#c2410c', doneLabel:'PCM disparado',         doneBg:'#d1fae5', doneC:'#065f46' },
+        monitor: null
       }
 
       function _q2v2ThresholdChange() {
@@ -3556,42 +3576,52 @@
       }
 
       function _renderQ2v2() {
-        const cfg     = _Q2V2_CFG[_q2v2Threshold]
-        const clients = BASE_LEADS.filter(r => r.pa > cfg.minPA).sort((a, b) => b.pa - a.pa).slice(0, 15)
-        const jaFila1 = clients.filter(c => c.fila === 1).length
-        const pendentes = clients.filter(c => !_q2v2States[c.cpf]).length
-        document.getElementById('q2v2-count').textContent = clients.length
+        const minPA   = _Q2V2_THRESH[_q2v2Threshold]
+        const visible = Q2_DATA.filter(r => r.pa > minPA)
+        const nFila1  = Q2_DATA.filter(r => r.pa > 200000).length
+        const nRisco  = Q2_DATA.filter(r => r.posicao > 1000).length
+        const paRisco = Q2_DATA.filter(r => r.posicao > 1000).reduce((s, r) => s + r.pa, 0)
+        document.getElementById('q2v2-count').textContent = visible.length
         _renderMetrics('q2v2-metrics', [
-          { label: 'Total elegíveis',     value: clients.length,            color: 'var(--text)' },
-          { label: 'Já em Fila 1',        value: jaFila1,                   color: 'var(--success)' },
-          { label: 'Fora da Fila 1',      value: clients.length - jaFila1,  color: 'var(--danger)' },
-          { label: 'Ações pendentes',     value: pendentes,                 color: 'var(--orange)' }
+          { label: 'Total no threshold',         value: visible.length,                                                            color: 'var(--text)' },
+          { label: 'Candidatos a fila 1',        value: nFila1,                                                                    color: '#1d4ed8' },
+          { label: 'Em risco de expirar (pos>1k)',value: nRisco,                                                                   color: 'var(--danger)' },
+          { label: 'PA total em risco',          value: paRisco.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}), color: 'var(--orange)' }
         ])
-        document.getElementById('q2v2-body').innerHTML = clients.map(c => {
-          const done = _q2v2States[c.cpf]
-          const acao = done
-            ? `<span class="tag tag-green" style="font-size:10px;padding:2px 8px">✓ Aplicado</span>`
-            : `<button onclick="fireQ2v2Action('${c.cpf}')" style="background:${cfg.aBg};border:1px solid ${cfg.aC}30;color:${cfg.aC};border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">${cfg.action}</button>`
+        document.getElementById('q2v2-body').innerHTML = visible.map(r => {
+          const state = _q2v2States[r.cpf]
+          const zona  = _getQ2v2Zone(r)
+          const cfg   = _Q2V2_ZONE_CFG[zona]
+          let acao
+          if (state?.confirmed) {
+            acao = `<span class="tag" style="background:${cfg.doneBg};color:${cfg.doneC};font-size:10px;padding:2px 8px;border:1px solid ${cfg.doneC}30">✓ ${cfg.doneLabel}</span>`
+          } else if (!cfg) {
+            acao = `<span style="font-size:11px;color:var(--muted)">Monitorar</span>`
+          } else {
+            acao = `<button onclick="fireQ2v2Action('${r.cpf}')" style="background:${cfg.bBg};border:1px solid ${cfg.bC}30;color:${cfg.bC};border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">${cfg.btnLabel}</button>`
+          }
           return `
     <tr>
-      <td style="font-family:monospace;font-size:11px">${c.cpf}</td>
-      <td style="text-align:center"><strong>${c.nProdutos}</strong></td>
-      <td style="text-align:right">${c.valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</td>
-      <td style="text-align:right;font-weight:700;color:var(--success)">${c.pa.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</td>
-      <td style="text-align:center"><span class="tag ${c.fila===1?'tag-orange':'tag-indigo'}" style="font-size:10px;padding:2px 7px">Fila ${c.fila}</span></td>
+      <td style="font-family:monospace;font-size:11px">${r.cpf}</td>
+      <td style="text-align:center"><strong>${r.prods}</strong></td>
+      <td style="text-align:right">${r.valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</td>
+      <td style="text-align:right;font-weight:700;color:var(--success)">${r.pa.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</td>
+      <td style="text-align:center;color:var(--muted)">#${r.posicao.toLocaleString('pt-BR')}</td>
       <td style="text-align:center">${acao}</td>
     </tr>`
         }).join('')
       }
 
       function fireQ2v2Action(cpf) {
-        _q2v2States[cpf] = true
+        _q2v2States[cpf] = { confirmed: true }
         _renderQ2v2()
       }
 
       function applyAllQ2v2() {
-        const cfg = _Q2V2_CFG[_q2v2Threshold]
-        BASE_LEADS.filter(r => r.pa > cfg.minPA).forEach(c => { _q2v2States[c.cpf] = true })
+        const minPA = _Q2V2_THRESH[_q2v2Threshold]
+        Q2_DATA.filter(r => r.pa > minPA && _getQ2v2Zone(r) !== 'monitor').forEach(r => {
+          if (!_q2v2States[r.cpf]) _q2v2States[r.cpf] = { confirmed: true }
+        })
         _renderQ2v2()
       }
 
