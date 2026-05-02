@@ -2072,6 +2072,10 @@
             <span class="count-pill" id="q1v2-count">10</span>
             <button onclick="applyAllQ1v2()" style="margin-left:auto;background:var(--orange-lt);border:1px solid var(--orange-mid);color:var(--orange-dark);border-radius:6px;padding:3px 12px;font-size:11px;cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0">Aplicar todos</button>
           </div>
+          <div style="padding:4px 14px 2px;display:flex;align-items:center;gap:8px">
+            <span id="q1v2-refresh" style="font-size:10px;color:var(--muted)"></span>
+            <span title="Os leads ativos são atualizados a cada hora. A taxa de conversão reflete a base de ontem e é atualizada uma vez por dia." style="background:#fffbeb;color:#92400e;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:600;cursor:help">Conversão: base D-1 · atualiza diariamente</span>
+          </div>
           <div id="q1v2-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 14px"></div>
           <div style="overflow-x:auto">
             <table style="font-size:12px">
@@ -2110,18 +2114,24 @@
             <span class="count-pill" id="q2v2-count">—</span>
             <button onclick="applyAllQ2v2()" style="margin-left:auto;background:var(--orange-lt);border:1px solid var(--orange-mid);color:var(--orange-dark);border-radius:6px;padding:3px 12px;font-size:11px;cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0">Aplicar todos</button>
           </div>
+          <div style="padding:4px 14px 2px">
+            <span id="q2v2-refresh" style="font-size:10px;color:var(--muted)"></span>
+          </div>
           <div id="q2v2-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 14px"></div>
           <div style="overflow-x:auto">
             <table style="font-size:12px">
               <colgroup>
-                <col style="width:14%"><col style="width:7%">
-                <col style="width:13%"><col style="width:12%">
-                <col style="width:12%"><col style="width:9%">
-                <col style="width:8%"><col style="width:25%">
+                <col style="width:10%"><col style="width:8%">
+                <col style="width:11%"><col style="width:6%">
+                <col style="width:11%"><col style="width:9%">
+                <col style="width:10%"><col style="width:8%">
+                <col style="width:7%"><col style="width:20%">
               </colgroup>
               <thead>
                 <tr>
                   <th>CPF</th>
+                  <th>Cesta</th>
+                  <th>Produto</th>
                   <th style="text-align:center">Nº Prod.</th>
                   <th style="text-align:right">Valor acumulado</th>
                   <th style="text-align:right">PA</th>
@@ -2134,6 +2144,7 @@
               <tbody id="q2v2-body"></tbody>
             </table>
           </div>
+          <div style="padding:6px 14px 10px;font-size:11px;color:var(--muted)">Clientes sem PA (Investimento, Conveniência, Recuperação) pontuam apenas por valor acumulado, produtos e urgência.</div>
         </div>
 
         <!-- Q3 v2 – Saúde das Carteiras -->
@@ -2144,6 +2155,9 @@
             <span style="font-size:11px;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;margin-left:6px">Fila 2 · capacidade vs demanda por carteira</span>
             <span class="count-pill" id="q3v2-count">6</span>
             <button onclick="applyAllQ3v2()" style="margin-left:auto;background:var(--orange-lt);border:1px solid var(--orange-mid);color:var(--orange-dark);border-radius:6px;padding:3px 12px;font-size:11px;cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0">Aplicar todos</button>
+          </div>
+          <div style="padding:4px 14px 2px">
+            <span id="q3v2-refresh" style="font-size:10px;color:var(--muted)"></span>
           </div>
           <div id="q3v2-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 14px"></div>
           <div style="overflow-x:auto">
@@ -3458,6 +3472,9 @@
         _renderQ1v2()
         _renderQ2v2()
         _renderQ3v2()
+        setInterval(_renderQ1v2, 3600000)
+        setInterval(_renderQ2v2, 3600000)
+        setInterval(_renderQ3v2, 3600000)
       }
 
       // shared metric cards helper
@@ -3472,6 +3489,10 @@
       // ── Q1 v2 ──────────────────────────────────────────────────────────────
 
       function _renderQ1v2() {
+        const _now = new Date()
+        const _fmt = d => d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
+        const _ri1 = document.getElementById('q1v2-refresh')
+        if (_ri1) _ri1.textContent = `Atualizado às ${_fmt(_now)} · próx. atualização às ${_fmt(new Date(_now.getTime() + 3600000))}`
         document.getElementById('q1v2-count').textContent = TOP10_FUNC.length
         const convVals = TOP10_FUNC.map(f => parseFloat(f.conversao))
         const alta    = convVals.filter(c => c >= 55).length
@@ -3628,13 +3649,13 @@
       // ── Q2 v2 ──────────────────────────────────────────────────────────────
 
       const Q2_DATA = [
-        {cpf:'***.456.789-**', prods:7, valor:1200000, pa:280000, posicao:1240, horasNaFila:22},
-        {cpf:'***.123.456-**', prods:6, valor:890000,  pa:195000, posicao:980,  horasNaFila:18},
-        {cpf:'***.789.012-**', prods:5, valor:540000,  pa:120000, posicao:612,  horasNaFila:9},
-        {cpf:'***.321.654-**', prods:4, valor:320000,  pa:88000,  posicao:380,  horasNaFila:6},
-        {cpf:'***.654.321-**', prods:3, valor:210000,  pa:45000,  posicao:290,  horasNaFila:14},
-        {cpf:'***.111.222-**', prods:2, valor:180000,  pa:38000,  posicao:510,  horasNaFila:21},
-        {cpf:'***.333.444-**', prods:2, valor:120000,  pa:25000,  posicao:850,  horasNaFila:11}
+        {cpf:'***.456.789-**', cesta:'Crédito',      produto:'Crédito Pessoal', prods:7, valor:1200000, pa:280000, posicao:1240, horasNaFila:22},
+        {cpf:'***.123.456-**', cesta:'Crédito',      produto:'Consórcio',       prods:6, valor:890000,  pa:195000, posicao:980,  horasNaFila:18},
+        {cpf:'***.789.012-**', cesta:'Investimento', produto:'LCI',             prods:5, valor:540000,  pa:0,      posicao:612,  horasNaFila:9 },
+        {cpf:'***.321.654-**', cesta:'Crédito',      produto:'CDC',             prods:4, valor:320000,  pa:88000,  posicao:380,  horasNaFila:6 },
+        {cpf:'***.654.321-**', cesta:'Conveniência', produto:'Seguro Vida',     prods:3, valor:210000,  pa:0,      posicao:290,  horasNaFila:14},
+        {cpf:'***.111.222-**', cesta:'Crédito',      produto:'Crédito Pessoal', prods:2, valor:180000,  pa:38000,  posicao:510,  horasNaFila:21},
+        {cpf:'***.333.444-**', cesta:'Investimento', produto:'CDB',             prods:2, valor:120000,  pa:0,      posicao:850,  horasNaFila:11}
       ]
 
       const _Q2V2_THRESH = { 5: 200000, 10: 100000, 20: 50000 }
@@ -3660,13 +3681,18 @@
       }
 
       function _renderQ2v2() {
+        const _now = new Date()
+        const _fmt = d => d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
+        const _ri2 = document.getElementById('q2v2-refresh')
+        if (_ri2) _ri2.textContent = `Atualizado às ${_fmt(_now)} · próx. atualização às ${_fmt(new Date(_now.getTime() + 3600000))}`
+
         const minPA     = _Q2V2_THRESH[_q2v2Threshold]
         const allScores = Q2_DATA.map(_calcVipScore).sort((a, b) => b - a)
         const thresh5   = allScores[Math.ceil(allScores.length * 0.05) - 1]
         const thresh20  = allScores[Math.ceil(allScores.length * 0.20) - 1]
 
         const visible = Q2_DATA
-          .filter(r => r.pa > minPA)
+          .filter(r => r.cesta !== 'Crédito' || r.pa > minPA)
           .map(r => ({ ...r, vipScore: Math.round(_calcVipScore(r)) }))
           .sort((a, b) => b.vipScore - a.vipScore)
 
@@ -3680,6 +3706,13 @@
           { label: 'Urgente (hrs > 20h)',  value: nUrgente,       color: 'var(--danger)'  },
           { label: 'Candidatos fila 1',    value: Q2_DATA.filter(r => _calcVipScore(r) >= thresh5).length, color: 'var(--orange)' }
         ])
+
+        const cestaCfg = {
+          'Crédito':      {bg:'#d1fae5', c:'#065f46'},
+          'Investimento': {bg:'#eff6ff', c:'#1d4ed8'},
+          'Conveniência': {bg:'#fffbeb', c:'#92400e'},
+          'Recuperação':  {bg:'#f3f4f6', c:'#6b7280'}
+        }
 
         document.getElementById('q2v2-body').innerHTML = visible.map(r => {
           const state  = _q2v2States[r.cpf]
@@ -3695,6 +3728,12 @@
           const hColor = r.horasNaFila > 20 ? '#991b1b' : r.horasNaFila > 8 ? '#92400e' : '#6b7280'
           const hrsCel = `<span style="background:${hBg};color:${hColor};border-radius:5px;padding:2px 6px;font-size:10px;font-weight:700">${r.horasNaFila}h</span>`
 
+          const cc       = cestaCfg[r.cesta] || {bg:'#f3f4f6', c:'#6b7280'}
+          const cestaCel = `<span style="background:${cc.bg};color:${cc.c};border-radius:5px;padding:2px 6px;font-size:10px;font-weight:700">${r.cesta}</span>`
+          const paCel    = r.pa > 0
+            ? `<span style="font-weight:700;color:var(--success)">${r.pa.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</span>`
+            : `<span style="color:var(--muted)">—</span>`
+
           let acao
           if (state?.confirmed) {
             const done = state.done || '✓ Confirmado'
@@ -3709,9 +3748,11 @@
           return `
     <tr>
       <td style="font-family:monospace;font-size:11px">${r.cpf}</td>
+      <td>${cestaCel}</td>
+      <td style="font-size:11px">${r.produto}</td>
       <td style="text-align:center"><strong>${r.prods}</strong></td>
       <td style="text-align:right">${r.valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</td>
-      <td style="text-align:right;font-weight:700;color:var(--success)">${r.pa.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</td>
+      <td style="text-align:right">${paCel}</td>
       <td style="text-align:right">${scoreCel}</td>
       <td style="text-align:center">${hrsCel}</td>
       <td style="text-align:center"><span class="tag tag-indigo" style="font-size:10px;padding:2px 5px">Fila 2</span></td>
@@ -3737,7 +3778,7 @@
         const thresh5   = allScores[Math.ceil(allScores.length * 0.05) - 1]
         const thresh20  = allScores[Math.ceil(allScores.length * 0.20) - 1]
         const minPA = _Q2V2_THRESH[_q2v2Threshold]
-        Q2_DATA.filter(r => r.pa > minPA && !_q2v2States[r.cpf]).forEach(r => {
+        Q2_DATA.filter(r => (r.cesta !== 'Crédito' || r.pa > minPA) && !_q2v2States[r.cpf]).forEach(r => {
           const score  = Math.round(_calcVipScore(r))
           const action = _getQ2v2Action(score, r.horasNaFila, thresh5, thresh20)
           if (action) _q2v2States[r.cpf] = { confirmed: true, done: action.done, bg: action.bg, c: action.c }
@@ -3748,6 +3789,10 @@
       // ── Q3 v2 ──────────────────────────────────────────────────────────────
 
       function _renderQ3v2() {
+        const _now = new Date()
+        const _fmt = d => d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
+        const _ri3 = document.getElementById('q3v2-refresh')
+        if (_ri3) _ri3.textContent = `Atualizado às ${_fmt(_now)} · próx. atualização às ${_fmt(new Date(_now.getTime() + 3600000))}`
         const rows = Q3_DATA.map(r => {
           const capDiaria      = Math.round(r.atuados2d / 2)
           const tempoRestante  = 48 - r.horasMaisAntigo
