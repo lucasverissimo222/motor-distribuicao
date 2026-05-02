@@ -2114,9 +2114,10 @@
           <div style="overflow-x:auto">
             <table style="font-size:12px">
               <colgroup>
-                <col style="width:17%"><col style="width:9%">
-                <col style="width:17%"><col style="width:17%">
-                <col style="width:13%"><col style="width:27%">
+                <col style="width:14%"><col style="width:7%">
+                <col style="width:13%"><col style="width:12%">
+                <col style="width:12%"><col style="width:9%">
+                <col style="width:8%"><col style="width:25%">
               </colgroup>
               <thead>
                 <tr>
@@ -2124,7 +2125,9 @@
                   <th style="text-align:center">Nº Prod.</th>
                   <th style="text-align:right">Valor acumulado</th>
                   <th style="text-align:right">PA</th>
-                  <th style="text-align:center">Posição fila 2</th>
+                  <th style="text-align:right">VIP Score</th>
+                  <th style="text-align:center">Hrs na fila</th>
+                  <th style="text-align:center">Fila atual</th>
                   <th style="text-align:center">Ação sugerida</th>
                 </tr>
               </thead>
@@ -2133,35 +2136,30 @@
           </div>
         </div>
 
-        <!-- Q3 v2 – Leads em Risco / Pressão -->
+        <!-- Q3 v2 – Saúde das Carteiras -->
         <div class="i-card">
           <div class="i-card-title">
-            <span class="badge" style="background:var(--danger)">!</span>
-            Leads em Risco — Pressão por carteira · Score de prioridade
+            <span class="badge" style="background:var(--success)">3</span>
+            Saúde das Carteiras
+            <span style="font-size:11px;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;margin-left:6px">Fila 2 · capacidade vs demanda por carteira</span>
             <span class="count-pill" id="q3v2-count">6</span>
             <button onclick="applyAllQ3v2()" style="margin-left:auto;background:var(--orange-lt);border:1px solid var(--orange-mid);color:var(--orange-dark);border-radius:6px;padding:3px 12px;font-size:11px;cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0">Aplicar todos</button>
           </div>
           <div id="q3v2-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 14px"></div>
           <div style="overflow-x:auto">
-            <table style="font-size:11px">
+            <table style="font-size:12px">
               <colgroup>
-                <col style="width:6%"><col style="width:8%">
-                <col style="width:9%"><col style="width:9%">
-                <col style="width:8%"><col style="width:10%">
-                <col style="width:9%"><col style="width:7%">
-                <col style="width:14%"><col style="width:20%">
+                <col style="width:14%"><col style="width:14%">
+                <col style="width:14%"><col style="width:14%">
+                <col style="width:16%"><col style="width:28%">
               </colgroup>
               <thead>
                 <tr>
-                  <th>Horas</th>
-                  <th style="text-align:right">Aguard.</th>
                   <th>Carteira</th>
-                  <th>Funcional</th>
+                  <th style="text-align:right">Aguardando</th>
                   <th style="text-align:right">Atuados 2d</th>
-                  <th style="text-align:center">Pressão / tend.</th>
-                  <th style="text-align:center">Conversão</th>
-                  <th style="text-align:center">Score</th>
-                  <th style="text-align:center">Zona</th>
+                  <th style="text-align:right">Cap. diária</th>
+                  <th style="text-align:center">Status</th>
                   <th style="text-align:center">Ação</th>
                 </tr>
               </thead>
@@ -3435,12 +3433,12 @@
       // ── INSIGHTS V2 ──────────────────────────────────────────────────────────
 
       const Q3_DATA = [
-        {hrs:24, cart:'01_5412', func:'102938475', aguardando:1240, atuados2d:12,  conv:0.48, recebidos:320, trend:'up'},
-        {hrs:20, cart:'01_2387', func:'987654321', aguardando:960,  atuados2d:420, conv:0.41, recebidos:890, trend:'flat'},
-        {hrs:16, cart:'01_9001', func:'112233445', aguardando:780,  atuados2d:680, conv:0.37, recebidos:45,  trend:'down'},
-        {hrs:12, cart:'01_1122', func:'556677889', aguardando:620,  atuados2d:55,  conv:0.29, recebidos:210, trend:'up'},
-        {hrs:8,  cart:'01_3344', func:'667788990', aguardando:440,  atuados2d:390, conv:0.24, recebidos:180, trend:'flat'},
-        {hrs:5,  cart:'01_7788', func:'334455667', aguardando:360,  atuados2d:310, conv:0.20, recebidos:95,  trend:'down'}
+        {cart:'01_5412', aguardando:1240, atuados2d:12},
+        {cart:'01_2387', aguardando:960,  atuados2d:420},
+        {cart:'01_9001', aguardando:780,  atuados2d:680},
+        {cart:'01_1122', aguardando:620,  atuados2d:55},
+        {cart:'01_3344', aguardando:440,  atuados2d:390},
+        {cart:'01_7788', aguardando:360,  atuados2d:310}
       ]
 
       let _insightsV2Ready = false
@@ -3450,7 +3448,6 @@
       let _ruleStates      = {}
       let _q2v2States      = {}
       let _q3v2States      = {}
-      let uberlikeUsados   = 0
 
       function renderInsightsV2() {
         if (_insightsV2Ready) return
@@ -3628,29 +3625,30 @@
       // ── Q2 v2 ──────────────────────────────────────────────────────────────
 
       const Q2_DATA = [
-        {cpf:'***.456.789-**', prods:7, valor:1200000, pa:280000, posicao:1240},
-        {cpf:'***.123.456-**', prods:6, valor:890000,  pa:195000, posicao:980},
-        {cpf:'***.789.012-**', prods:5, valor:540000,  pa:120000, posicao:612},
-        {cpf:'***.321.654-**', prods:4, valor:320000,  pa:88000,  posicao:380},
-        {cpf:'***.654.321-**', prods:3, valor:210000,  pa:45000,  posicao:290},
-        {cpf:'***.111.222-**', prods:2, valor:180000,  pa:38000,  posicao:510},
-        {cpf:'***.333.444-**', prods:2, valor:120000,  pa:25000,  posicao:850}
+        {cpf:'***.456.789-**', prods:7, valor:1200000, pa:280000, posicao:1240, horasNaFila:22},
+        {cpf:'***.123.456-**', prods:6, valor:890000,  pa:195000, posicao:980,  horasNaFila:18},
+        {cpf:'***.789.012-**', prods:5, valor:540000,  pa:120000, posicao:612,  horasNaFila:9},
+        {cpf:'***.321.654-**', prods:4, valor:320000,  pa:88000,  posicao:380,  horasNaFila:6},
+        {cpf:'***.654.321-**', prods:3, valor:210000,  pa:45000,  posicao:290,  horasNaFila:14},
+        {cpf:'***.111.222-**', prods:2, valor:180000,  pa:38000,  posicao:510,  horasNaFila:21},
+        {cpf:'***.333.444-**', prods:2, valor:120000,  pa:25000,  posicao:850,  horasNaFila:11}
       ]
 
       const _Q2V2_THRESH = { 5: 200000, 10: 100000, 20: 50000 }
 
-      function _getQ2v2Zone(r) {
-        if (r.pa > 200000)                      return 'fila1'
-        if (r.pa > 100000 && r.posicao > 500)  return 'subir'
-        if (r.pa > 50000  && r.posicao > 1000) return 'pcm'
-        return 'monitor'
+      function _calcVipScore(r) {
+        return (r.pa * 0.5) + (r.valor * 0.3) + (r.prods * 0.1) + (r.horasNaFila * 0.1)
       }
 
-      const _Q2V2_ZONE_CFG = {
-        fila1:   { btnLabel:'Mover para fila 1', bBg:'#eff6ff', bC:'#1d4ed8', doneLabel:'Movido para fila 1',    doneBg:'#eff6ff', doneC:'#1d4ed8' },
-        subir:   { btnLabel:'Subir posição',     bBg:'#d1fae5', bC:'#065f46', doneLabel:'Posição atualizada',    doneBg:'#d1fae5', doneC:'#065f46' },
-        pcm:     { btnLabel:'Disparar PCM',      bBg:'#fff7ed', bC:'#c2410c', doneLabel:'PCM disparado',         doneBg:'#d1fae5', doneC:'#065f46' },
-        monitor: null
+      function _getQ2v2Action(score, hrs, thresh5, thresh20) {
+        const top5  = score >= thresh5
+        const top20 = score >= thresh20
+        const urgent = hrs > 20
+        if (top5  && urgent) return { label:'Mover fila 1 urgente', bg:'#fef2f2', c:'#991b1b', done:'✓ Movido urgente'       }
+        if (top5)            return { label:'Mover fila 1',         bg:'#eff6ff', c:'#1d4ed8', done:'✓ Movido para fila 1'   }
+        if (top20 && urgent) return { label:'Disparar PCM',         bg:'#fffbeb', c:'#92400e', done:'✓ PCM disparado'        }
+        if (top20)           return { label:'Subir posição',        bg:'#d1fae5', c:'#065f46', done:'✓ Posição atualizada'   }
+        return null
       }
 
       function _q2v2ThresholdChange() {
@@ -3659,162 +3657,160 @@
       }
 
       function _renderQ2v2() {
-        const minPA   = _Q2V2_THRESH[_q2v2Threshold]
-        const visible = Q2_DATA.filter(r => r.pa > minPA)
-        const nFila1  = Q2_DATA.filter(r => r.pa > 200000).length
-        const nRisco  = Q2_DATA.filter(r => r.posicao > 1000).length
-        const paRisco = Q2_DATA.filter(r => r.posicao > 1000).reduce((s, r) => s + r.pa, 0)
+        const minPA     = _Q2V2_THRESH[_q2v2Threshold]
+        const allScores = Q2_DATA.map(_calcVipScore).sort((a, b) => b - a)
+        const thresh5   = allScores[Math.ceil(allScores.length * 0.05) - 1]
+        const thresh20  = allScores[Math.ceil(allScores.length * 0.20) - 1]
+
+        const visible = Q2_DATA
+          .filter(r => r.pa > minPA)
+          .map(r => ({ ...r, vipScore: Math.round(_calcVipScore(r)) }))
+          .sort((a, b) => b.vipScore - a.vipScore)
+
+        const nTop5    = Q2_DATA.filter(r => _calcVipScore(r) >= thresh5).length
+        const nUrgente = Q2_DATA.filter(r => r.horasNaFila > 20).length
+
         document.getElementById('q2v2-count').textContent = visible.length
         _renderMetrics('q2v2-metrics', [
-          { label: 'Total no threshold',         value: visible.length,                                                            color: 'var(--text)' },
-          { label: 'Candidatos a fila 1',        value: nFila1,                                                                    color: '#1d4ed8' },
-          { label: 'Em risco de expirar (pos>1k)',value: nRisco,                                                                   color: 'var(--danger)' },
-          { label: 'PA total em risco',          value: paRisco.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}), color: 'var(--orange)' }
+          { label: 'Total no threshold',   value: visible.length, color: 'var(--text)'    },
+          { label: 'VIP Top 5%',           value: nTop5,          color: '#1d4ed8'        },
+          { label: 'Urgente (hrs > 20h)',  value: nUrgente,       color: 'var(--danger)'  },
+          { label: 'Candidatos fila 1',    value: Q2_DATA.filter(r => _calcVipScore(r) >= thresh5).length, color: 'var(--orange)' }
         ])
+
         document.getElementById('q2v2-body').innerHTML = visible.map(r => {
-          const state = _q2v2States[r.cpf]
-          const zona  = _getQ2v2Zone(r)
-          const cfg   = _Q2V2_ZONE_CFG[zona]
+          const state  = _q2v2States[r.cpf]
+          const action = _getQ2v2Action(r.vipScore, r.horasNaFila, thresh5, thresh20)
+
+          const isTop5  = r.vipScore >= thresh5
+          const isTop20 = r.vipScore >= thresh20
+          const scoreBg = isTop5  ? '#d1fae5' : isTop20 ? '#fffbeb' : 'transparent'
+          const scoreC  = isTop5  ? '#065f46' : isTop20 ? '#92400e' : 'var(--text)'
+          const scoreCel = `<span style="display:inline-block;padding:2px 6px;border-radius:5px;background:${scoreBg};color:${scoreC};font-weight:700;font-size:11px">${r.vipScore.toLocaleString('pt-BR')}</span>`
+
+          const hBg    = r.horasNaFila > 20 ? '#fef2f2' : r.horasNaFila > 8 ? '#fffbeb' : '#f3f4f6'
+          const hColor = r.horasNaFila > 20 ? '#991b1b' : r.horasNaFila > 8 ? '#92400e' : '#6b7280'
+          const hrsCel = `<span style="background:${hBg};color:${hColor};border-radius:5px;padding:2px 6px;font-size:10px;font-weight:700">${r.horasNaFila}h</span>`
+
           let acao
           if (state?.confirmed) {
-            acao = `<span class="tag" style="background:${cfg.doneBg};color:${cfg.doneC};font-size:10px;padding:2px 8px;border:1px solid ${cfg.doneC}30">✓ ${cfg.doneLabel}</span>`
-          } else if (!cfg) {
+            const done = state.done || '✓ Confirmado'
+            const doneBg = state.bg || '#d1fae5'; const doneC = state.c || '#065f46'
+            acao = `<span class="tag" style="background:${doneBg};color:${doneC};font-size:10px;padding:2px 8px;border:1px solid ${doneC}30">${done}</span>`
+          } else if (!action) {
             acao = `<span style="font-size:11px;color:var(--muted)">Monitorar</span>`
           } else {
-            acao = `<button onclick="fireQ2v2Action('${r.cpf}')" style="background:${cfg.bBg};border:1px solid ${cfg.bC}30;color:${cfg.bC};border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">${cfg.btnLabel}</button>`
+            acao = `<button onclick="fireQ2v2Action('${r.cpf}')" style="background:${action.bg};border:1px solid ${action.c}30;color:${action.c};border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">${action.label}</button>`
           }
+
           return `
     <tr>
       <td style="font-family:monospace;font-size:11px">${r.cpf}</td>
       <td style="text-align:center"><strong>${r.prods}</strong></td>
       <td style="text-align:right">${r.valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</td>
       <td style="text-align:right;font-weight:700;color:var(--success)">${r.pa.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0})}</td>
-      <td style="text-align:center;color:var(--muted)">#${r.posicao.toLocaleString('pt-BR')}</td>
+      <td style="text-align:right">${scoreCel}</td>
+      <td style="text-align:center">${hrsCel}</td>
+      <td style="text-align:center"><span class="tag tag-indigo" style="font-size:10px;padding:2px 5px">Fila 2</span></td>
       <td style="text-align:center">${acao}</td>
     </tr>`
         }).join('')
       }
 
       function fireQ2v2Action(cpf) {
-        _q2v2States[cpf] = { confirmed: true }
+        const allScores = Q2_DATA.map(_calcVipScore).sort((a, b) => b - a)
+        const thresh5   = allScores[Math.ceil(allScores.length * 0.05) - 1]
+        const thresh20  = allScores[Math.ceil(allScores.length * 0.20) - 1]
+        const r = Q2_DATA.find(x => x.cpf === cpf)
+        if (!r) return
+        const score  = Math.round(_calcVipScore(r))
+        const action = _getQ2v2Action(score, r.horasNaFila, thresh5, thresh20)
+        _q2v2States[cpf] = { confirmed: true, done: action?.done, bg: action?.bg, c: action?.c }
         _renderQ2v2()
       }
 
       function applyAllQ2v2() {
+        const allScores = Q2_DATA.map(_calcVipScore).sort((a, b) => b - a)
+        const thresh5   = allScores[Math.ceil(allScores.length * 0.05) - 1]
+        const thresh20  = allScores[Math.ceil(allScores.length * 0.20) - 1]
         const minPA = _Q2V2_THRESH[_q2v2Threshold]
-        Q2_DATA.filter(r => r.pa > minPA && _getQ2v2Zone(r) !== 'monitor').forEach(r => {
-          if (!_q2v2States[r.cpf]) _q2v2States[r.cpf] = { confirmed: true }
+        Q2_DATA.filter(r => r.pa > minPA && !_q2v2States[r.cpf]).forEach(r => {
+          const score  = Math.round(_calcVipScore(r))
+          const action = _getQ2v2Action(score, r.horasNaFila, thresh5, thresh20)
+          if (action) _q2v2States[r.cpf] = { confirmed: true, done: action.done, bg: action.bg, c: action.c }
         })
         _renderQ2v2()
       }
 
       // ── Q3 v2 ──────────────────────────────────────────────────────────────
 
-      function _getQ3Zone(pressao, conv) {
-        if (pressao > 10 && conv > 0.35) return 'roxa'
-        if (pressao > 10)                return 'vermelha'
-        if (pressao < 3  && conv > 0.30) return 'verde'
-        return 'amarela'
-      }
-
-      const _ZONE_CFG = {
-        roxa:     { bg:'#f5f3ff', color:'#6d28d9', label:'Segurar — buffer',      btnAcao: null },
-        vermelha: { bg:'#fef2f2', color:'#991b1b', label:'PCM urgente',           btnAcao:'pcm',     btnLabel:'Disparar PCM',     bBg:'#fef2f2', bC:'#991b1b' },
-        verde:    { bg:'#d1fae5', color:'#065f46', label:'Ativar uber-like',      btnAcao:'uber',    btnLabel:'Ativar uber-like', bBg:'#d1fae5', bC:'#065f46' },
-        amarela:  { bg:'#fffbeb', color:'#92400e', label:'Monitorar',             btnAcao:'monitor', btnLabel:'Marcar monitorado',bBg:'#fffbeb', bC:'#92400e' }
-      }
-
       function _renderQ3v2() {
-        // compute pressão, zona e score por linha
-        const rows = Q3_DATA.map((r, i) => {
-          const pressao = r.aguardando / Math.max(r.atuados2d, 1)
-          const scoreRaw = Math.min(1 / pressao, 1) * 0.6 + r.conv * 0.4
-          const score = Math.round(scoreRaw * 100)
-          // marcar buffer para zona roxa na primeira passagem
-          if (!_q3v2States[i] && _getQ3Zone(pressao, r.conv) === 'roxa') {
-            _q3v2States[i] = { buffer: true }
-          }
-          const zona = (_q3v2States[i]?.buffer && pressao < 3) ? 'verde' : _getQ3Zone(pressao, r.conv)
-          return { ...r, pressao, score, zona }
+        const rows = Q3_DATA.map(r => {
+          const capDiaria = Math.round(r.atuados2d / 2)
+          let status
+          if      (r.aguardando <= capDiaria * 3) status = 'ok'
+          else if (r.aguardando <= capDiaria * 7) status = 'atencao'
+          else                                    status = 'critico'
+          return { ...r, capDiaria, status }
         })
 
-        const nRoxa   = rows.filter(r => r.zona === 'roxa').length
-        const nVerde  = rows.filter(r => r.zona === 'verde').length
-        const restante = Math.max(0, 200 - uberlikeUsados)
+        const nCritico = rows.filter(r => r.status === 'critico').length
+        const nAtencao = rows.filter(r => r.status === 'atencao').length
+        const nOk      = rows.filter(r => r.status === 'ok').length
         _renderMetrics('q3v2-metrics', [
-          { label: 'Total em risco',               value: rows.length, color: 'var(--text)' },
-          { label: 'Zona roxa — segurar',          value: nRoxa,       color: '#6d28d9' },
-          { label: 'Zona verde — uber-like disp.', value: nVerde,      color: 'var(--success)' },
-          { label: `Uber-likes restantes (${uberlikeUsados}/200)`, value: restante, color: restante > 0 ? 'var(--orange)' : 'var(--muted)' }
+          { label: 'Total monitorado', value: rows.length, color: 'var(--text)'    },
+          { label: 'Crítico',          value: nCritico,    color: 'var(--danger)'  },
+          { label: 'Atenção',          value: nAtencao,    color: '#92400e'        },
+          { label: 'OK',               value: nOk,         color: 'var(--success)' }
         ])
 
+        const statusCfg = {
+          ok:      { bg:'#d1fae5', c:'#065f46', label:'OK'      },
+          atencao: { bg:'#fffbeb', c:'#92400e', label:'Atenção' },
+          critico: { bg:'#fef2f2', c:'#991b1b', label:'Crítico' }
+        }
+
         document.getElementById('q3v2-body').innerHTML = rows.map((r, i) => {
-          const cfg   = _ZONE_CFG[r.zona]
+          const scfg  = statusCfg[r.status]
           const state = _q3v2States[i]
-
-          const hBg    = r.hrs >= 20 ? '#fef2f2' : r.hrs >= 12 ? '#fffbeb' : '#f3f4f6'
-          const hColor = r.hrs >= 20 ? 'var(--danger)' : r.hrs >= 12 ? '#92400e' : 'var(--muted)'
-          const tIcon  = r.trend === 'up' ? '▲' : r.trend === 'down' ? '▼' : '—'
-          const tColor = r.trend === 'up' ? 'var(--danger)' : r.trend === 'down' ? 'var(--success)' : 'var(--muted)'
-
-          const lowConf = r.recebidos < 100
-          const convTxt = `${Math.round(r.conv * 100)}%${lowConf ? ' <span title="Volume baixo — dado pode não ser representativo" style="color:#f59e0b;cursor:help">⚠</span>' : ''}`
-
-          const sBg    = r.score >= 70 ? '#d1fae5' : r.score >= 45 ? '#fffbeb' : '#fef2f2'
-          const sColor = r.score >= 70 ? '#065f46' : r.score >= 45 ? '#92400e' : '#991b1b'
 
           let acao
           if (state?.confirmed) {
-            const cLabel = r.zona === 'verde' ? '✓ Uber-like ativado' : r.zona === 'vermelha' ? '✓ PCM disparado' : '✓ Monitorado'
-            acao = `<span style="font-size:10px;color:var(--muted);font-style:italic">${cLabel}</span>`
-          } else if (r.zona === 'roxa') {
-            if (state?.buffer && r.pressao < 3) {
-              acao = `<button onclick="fireQ3Action(${i},'uber')" style="background:#d1fae5;border:1px solid #6ee7b7;color:#065f46;border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">Ativar uber-like</button>`
-            } else {
-              acao = `<span style="font-size:10px;color:#6d28d9;font-weight:600">🔒 Em buffer</span>`
-            }
-          } else if (r.zona === 'verde' && uberlikeUsados >= 200) {
-            acao = `<span class="tag tag-amber" style="font-size:10px;padding:2px 8px">Limite do ciclo atingido</span>`
+            const doneLabel = r.status === 'critico' ? '✓ PCM + Uber-like' : '✓ Uber-like ativado'
+            acao = `<span style="font-size:10px;color:var(--muted);font-style:italic">${doneLabel}</span>`
+          } else if (r.status === 'ok') {
+            acao = `<span style="font-size:11px;color:var(--muted)">Nenhuma</span>`
+          } else if (r.status === 'atencao') {
+            acao = `<button onclick="fireQ3Action(${i})" style="background:#d1fae5;border:1px solid #6ee7b730;color:#065f46;border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">Ativar uber-like</button>`
           } else {
-            acao = `<button onclick="fireQ3Action(${i},'${r.zona}')" style="background:${cfg.bBg};border:1px solid ${cfg.bC}40;color:${cfg.bC};border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">${cfg.btnLabel}</button>`
+            acao = `<button onclick="fireQ3Action(${i})" style="background:#fef2f2;border:1px solid #99181b30;color:#991b1b;border-radius:6px;padding:3px 10px;font-size:10px;cursor:pointer;font-weight:600">PCM + Uber-like</button>`
           }
 
           return `
     <tr>
-      <td style="text-align:center"><span class="tag" style="background:${hBg};color:${hColor};font-size:10px;padding:2px 5px;font-weight:700">${r.hrs}h</span></td>
-      <td style="text-align:right;font-weight:700">${r.aguardando.toLocaleString('pt-BR')}</td>
       <td><span class="tag tag-indigo" style="font-size:10px;padding:2px 5px">${r.cart}</span></td>
-      <td style="font-family:monospace;font-size:10px">${r.func}</td>
+      <td style="text-align:right;font-weight:700">${r.aguardando.toLocaleString('pt-BR')}</td>
       <td style="text-align:right">${r.atuados2d.toLocaleString('pt-BR')}</td>
-      <td style="text-align:center">${r.pressao.toFixed(1)} <span style="color:${tColor};font-size:10px">${tIcon}</span></td>
-      <td style="text-align:center">${convTxt}</td>
-      <td style="text-align:center"><span style="display:inline-block;min-width:26px;padding:2px 4px;border-radius:5px;background:${sBg};color:${sColor};font-weight:800;font-size:11px">${r.score}</span></td>
-      <td style="text-align:center"><span class="tag" style="background:${cfg.bg};color:${cfg.color};font-size:10px;padding:2px 6px;border:1px solid ${cfg.color}30;white-space:nowrap">${cfg.label}</span></td>
+      <td style="text-align:right;color:var(--muted)">${r.capDiaria.toLocaleString('pt-BR')}</td>
+      <td style="text-align:center"><span style="background:${scfg.bg};color:${scfg.c};border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700">${scfg.label}</span></td>
       <td style="text-align:center">${acao}</td>
     </tr>`
         }).join('')
       }
 
-      function fireQ3Action(rowIdx, zona) {
-        if (zona === 'verde' || zona === 'uber') {
-          if (uberlikeUsados >= 200) return
-          uberlikeUsados++
-        }
-        _q3v2States[rowIdx] = { ..._q3v2States[rowIdx], confirmed: true, action: zona }
+      function fireQ3Action(rowIdx) {
+        _q3v2States[rowIdx] = { confirmed: true }
         _renderQ3v2()
       }
 
       function applyAllQ3v2() {
-        Q3_DATA.forEach((r, i) => {
-          if (_q3v2States[i]?.confirmed) return
-          const pressao = r.aguardando / Math.max(r.atuados2d, 1)
-          const zona = _getQ3Zone(pressao, r.conv)
-          if (zona === 'roxa') return
-          if (zona === 'verde') {
-            if (uberlikeUsados >= 200) return
-            uberlikeUsados++
+        Q3_DATA.forEach((_, i) => {
+          const r = Q3_DATA[i]
+          const capDiaria = Math.round(r.atuados2d / 2)
+          const status = r.aguardando <= capDiaria * 3 ? 'ok' : r.aguardando <= capDiaria * 7 ? 'atencao' : 'critico'
+          if (status !== 'ok' && !_q3v2States[i]?.confirmed) {
+            _q3v2States[i] = { confirmed: true }
           }
-          _q3v2States[i] = { ..._q3v2States[i], confirmed: true, action: zona }
         })
         _renderQ3v2()
       }
