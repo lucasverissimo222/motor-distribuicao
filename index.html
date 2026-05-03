@@ -2175,10 +2175,10 @@
           <div style="overflow-x:auto">
             <table style="font-size:12px">
               <colgroup>
-                <col style="width:10%"><col style="width:10%">
-                <col style="width:10%"><col style="width:10%">
-                <col style="width:14%"><col style="width:14%">
-                <col style="width:10%"><col style="width:22%">
+                <col style="width:12%"><col style="width:12%">
+                <col style="width:12%"><col style="width:12%">
+                <col style="width:16%"><col style="width:12%">
+                <col style="width:24%">
               </colgroup>
               <thead>
                 <tr>
@@ -2186,8 +2186,7 @@
                   <th style="text-align:right">Aguardando</th>
                   <th style="text-align:right">Atuados 2d</th>
                   <th style="text-align:right">Cap. diária</th>
-                  <th style="text-align:center">Lead + antigo</th>
-                  <th style="text-align:center">Tempo restante</th>
+                  <th style="text-align:center">Tempo de fila</th>
                   <th style="text-align:center">Status</th>
                   <th style="text-align:center">Ação</th>
                 </tr>
@@ -3832,23 +3831,22 @@
           .map((r, i) => ({...r, _i: i}))
           .filter(r => !_q3v2Segment || r.idsegmento === _q3v2Segment)
           .map(r => {
-            const capDiaria      = Math.round(r.atuados2d / 2)
-            const tempoRestante  = 48 - r.horasMaisAntigo
+            const capDiaria = Math.round(r.atuados2d / 2)
             let status
-            if (capDiaria * 3 < r.aguardando || tempoRestante < 8)                              status = 'critico'
-            else if (capDiaria * 3 >= r.aguardando && tempoRestante >= 8 && tempoRestante <= 24) status = 'atencao'
-            else                                                                                  status = 'ok'
-            return { ...r, capDiaria, tempoRestante, status }
+            if (capDiaria * 3 < r.aguardando || r.horasMaisAntigo > 40)                               status = 'critico'
+            else if (capDiaria * 3 >= r.aguardando && r.horasMaisAntigo > 24 && r.horasMaisAntigo <= 40) status = 'atencao'
+            else                                                                                         status = 'ok'
+            return { ...r, capDiaria, status }
           })
 
         const nCritico   = rows.filter(r => r.status === 'critico').length
         const nAtencao   = rows.filter(r => r.status === 'atencao').length
-        const nExpirando = rows.filter(r => r.tempoRestante < 8).length
+        const nTempoCrit = rows.filter(r => r.horasMaisAntigo > 40).length
         _renderMetrics('q3v2-metrics', [
-          { label: 'Total monitorado', value: rows.length, color: 'var(--text)'   },
-          { label: 'Crítico',          value: nCritico,    color: 'var(--danger)' },
-          { label: 'Atenção',          value: nAtencao,    color: '#92400e'       },
-          { label: 'Expirando em 8h',  value: nExpirando,  color: 'var(--danger)' }
+          { label: 'Total monitorado',     value: rows.length, color: 'var(--text)'   },
+          { label: 'Crítico',              value: nCritico,    color: 'var(--danger)' },
+          { label: 'Atenção',              value: nAtencao,    color: '#92400e'       },
+          { label: 'Tempo crítico (> 40h)', value: nTempoCrit,  color: 'var(--danger)' }
         ])
 
         const statusCfg = {
@@ -3867,11 +3865,8 @@
 
           const antBg = r.horasMaisAntigo > 40 ? '#fef2f2' : r.horasMaisAntigo > 24 ? '#fffbeb' : '#f3f4f6'
           const antC  = r.horasMaisAntigo > 40 ? '#991b1b' : r.horasMaisAntigo > 24 ? '#92400e' : '#6b7280'
-          const trBg  = r.tempoRestante  < 8  ? '#fef2f2' : r.tempoRestante  < 24 ? '#fffbeb' : '#d1fae5'
-          const trC   = r.tempoRestante  < 8  ? '#991b1b' : r.tempoRestante  < 24 ? '#92400e' : '#065f46'
 
           const antBadge = `<span style="background:${antBg};color:${antC};border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700">${r.horasMaisAntigo}h na fila</span>`
-          const trBadge  = `<span style="background:${trBg};color:${trC};border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700">${r.tempoRestante}h restantes</span>`
 
           let acao
           if (state?.confirmed) {
@@ -3891,7 +3886,6 @@
       <td style="text-align:right">${r.atuados2d.toLocaleString('pt-BR')}</td>
       <td style="text-align:right;color:var(--muted)">${r.capDiaria.toLocaleString('pt-BR')}</td>
       <td style="text-align:center">${antBadge}</td>
-      <td style="text-align:center">${trBadge}</td>
       <td style="text-align:center"><span style="background:${scfg.bg};color:${scfg.c};border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700">${scfg.label}</span></td>
       <td style="text-align:center">${acao}</td>
     </tr>`
@@ -3906,10 +3900,9 @@
       function applyAllQ3v2() {
         Q3_DATA.forEach((r, i) => {
           if (_q3v2Segment && r.idsegmento !== _q3v2Segment) return
-          const capDiaria     = Math.round(r.atuados2d / 2)
-          const tempoRestante = 48 - r.horasMaisAntigo
-          const status = (capDiaria * 3 < r.aguardando || tempoRestante < 8) ? 'critico'
-                       : (capDiaria * 3 >= r.aguardando && tempoRestante >= 8 && tempoRestante <= 24) ? 'atencao'
+          const capDiaria = Math.round(r.atuados2d / 2)
+          const status = (capDiaria * 3 < r.aguardando || r.horasMaisAntigo > 40) ? 'critico'
+                       : (capDiaria * 3 >= r.aguardando && r.horasMaisAntigo > 24 && r.horasMaisAntigo <= 40) ? 'atencao'
                        : 'ok'
           if (status === 'critico' && !_q3v2States[i]?.confirmed) {
             _q3v2States[i] = { confirmed: true }
